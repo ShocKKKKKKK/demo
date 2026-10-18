@@ -19,6 +19,9 @@
    data-demo-long="<блок__элемент>"  модификатор по длине названия:
                                > 28 символов — <блок__элемент>--long, > 40 — ещё и --xlong
 
+   <html data-demo-optional>    основа открывается и без ?d= / ?test= (свои вымышленные значения,
+                               без ленты); неверный или просроченный ?d= всё равно ведёт на заглушку
+
    После подстановки на <html> ставятся CSS-переменные:
    --demo-name-word  длина самого длинного слова названия (для ограничения кегля)
    --demo-ribbon-h   высота ленты «Демо для …» (шапки основ сдвигаются на неё)
@@ -159,6 +162,21 @@
 	);
 
 	if (!url) {
+		// Основа с <html data-demo-optional> работает и без данных лида (вымышленные значения):
+		// ленты «Демо для …» нет, страница показывается сразу, demoReady отдаёт null
+		if (html.hasAttribute('data-demo-optional')) {
+			window.demoReady = domReady.then(function () {
+				document.querySelectorAll('.demo-ribbon').forEach(function (r) {
+					r.remove();
+				});
+				measureRibbon();
+				html.classList.remove('demo-wait');
+				html.classList.add('demo-ready');
+				document.dispatchEvent(new CustomEvent('demo:ready'));
+				return null;
+			});
+			return;
+		}
 		toStub();
 		window.demoReady = new Promise(function () {});
 		return;

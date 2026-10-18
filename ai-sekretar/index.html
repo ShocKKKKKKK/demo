@@ -1,0 +1,1388 @@
+<!doctype html>
+<html lang="uk" data-demo-title="AI-секретар у Telegram" data-demo-optional>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>AI-секретар адвоката — демо</title>
+<meta name="description" content="Демонстрація: бот у Telegram опитує клієнта, а адвокат отримує готову картку справи.">
+<meta name="theme-color" content="#1f4e5f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f4e5f'/%3E%3Cpath d='M7 16.5 24.5 9l-3 15-5.2-4.2-3 2.7.4-4.4 7.3-6.6-9 5.5z' fill='%23f3f1ec'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/demo.css">
+<script src="../shared/demo.js"></script>
+<style>
+:root {
+  --bg: #f3f1ec;
+  --surface: #fffefb;
+  --surface-2: #ebe8e1;
+  --line: #d9d4ca;
+  --text: #1c1f23;
+  --muted: #6a6f76;
+  --accent: #1f4e5f;
+  --accent-soft: #dbe6e9;
+  --bubble-in: #ffffff;
+  --bubble-out: #dcebe3;
+  --bubble-lawyer: #f6ecd9;
+  --lawyer: #9a6a1c;
+  --chat-bg: #e4e0d6;
+  --critical: #a3302a;
+  --high: #b86b14;
+  --medium: #8a7a1c;
+  --low: #4f6b55;
+  --font-ui: "IBM Plex Sans", system-ui, sans-serif;
+  --font-head: "Source Serif 4", Georgia, serif;
+  /* Лента «Демо для …» из shared/demo.css */
+  --demo-accent: var(--accent);
+  --demo-accent-fg: var(--surface);
+  --demo-font-label: var(--font-ui);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171a;
+    --surface: #1c2024;
+    --surface-2: #252a2f;
+    --line: #333a41;
+    --text: #e7e4dd;
+    --muted: #949aa1;
+    --accent: #7fb2c2;
+    --accent-soft: #23353c;
+    --bubble-in: #252a2f;
+    --bubble-out: #23382f;
+    --bubble-lawyer: #3a3022;
+    --lawyer: #e0b46a;
+    --chat-bg: #111416;
+    --critical: #e0675f;
+    --high: #e09a4a;
+    --medium: #cdbb55;
+    --low: #84a98b;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; position: relative; overflow: hidden; }
+button:disabled { cursor: default; }
+input, textarea { font: inherit; color: inherit; }
+.wrapper { min-height: 100%; display: flex; flex-direction: column; overflow: clip; padding-top: var(--demo-ribbon-h, 0px); }
+.wrapper > * { min-width: 0; }
+
+/* Header */
+.header { border-bottom: 1px solid var(--line); background: var(--surface); }
+.header__inner {
+  max-width: 1240px; margin: 0 auto; padding: 14px 16px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
+}
+.header__brand { font-family: var(--font-head); font-size: 20px; font-weight: 600; margin: 0; }
+.header__note { color: var(--muted); font-size: 13px; margin: 0; }
+.header__tabs { margin-left: auto; display: flex; gap: 4px; background: var(--surface-2); padding: 3px; border-radius: 8px; }
+.header__tab { border: 0; background: none; padding: 7px 14px; border-radius: 6px; font-size: 14px; color: var(--muted); }
+.header__tab--active { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
+
+/* Main */
+.main { flex: 1; max-width: 1240px; width: 100%; margin: 0 auto; padding: 20px 16px 32px; }
+.view { display: none; }
+.view--active { display: block; }
+
+/* Scenario picker + autoplay toggle */
+.scenarios { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
+.scenarios__label { color: var(--muted); font-size: 13px; margin-right: 4px; }
+.scenarios__btn {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 6px 14px; font-size: 14px;
+}
+.scenarios__btn--active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.scenarios__restart { border: 0; background: none; color: var(--accent); font-size: 14px; padding: 6px 4px; text-decoration: underline; text-underline-offset: 3px; }
+.scenarios__auto {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line); background: none; border-radius: 999px;
+  padding: 5px 12px; font-size: 13px; color: var(--muted);
+}
+.scenarios__auto-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); flex: none; }
+.scenarios__auto--on { color: var(--accent); border-color: var(--accent); }
+.scenarios__auto--on .scenarios__auto-dot { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
+
+/* Progress bar on the button autoplay is about to press */
+.autobar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+  background: currentColor; opacity: .55; transform-origin: left center; transform: scaleX(0); pointer-events: none;
+}
+.autobar--static { transform: none; opacity: .35; }
+
+/* Stage: two phones */
+.stage { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+@media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+.stage__caption { font-family: var(--font-head); font-size: 17px; margin: 0 0 8px; }
+.stage__hint { color: var(--muted); font-size: 13px; margin: -4px 0 10px; }
+
+/* Chat (Telegram-like) */
+.chat {
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  display: flex; flex-direction: column; height: min(680px, 82dvh); background: var(--chat-bg);
+}
+.chat__top { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.chat__who { min-width: 0; }
+.chat__avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; background: var(--accent); color: var(--surface);
+  font-family: var(--font-head); font-weight: 600; font-size: 14px;
+}
+.chat__name { margin: 0; font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat__status { margin: 0; font-size: 12px; color: var(--muted); }
+.chat__body { flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+.chat__bottom { padding: 8px; background: var(--surface); border-top: 1px solid var(--line); min-height: 52px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chat__input { flex: 1; color: var(--muted); font-size: 14px; padding: 0 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.msg { max-width: 82%; padding: 7px 11px 6px; border-radius: 12px; background: var(--bubble-in); box-shadow: 0 1px 1px rgb(0 0 0 / .06); white-space: pre-line; overflow-wrap: anywhere; animation: msg-in .25s ease-out; }
+.msg--out { align-self: flex-end; background: var(--bubble-out); border-bottom-right-radius: 4px; }
+.msg--in { align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg--lawyer { background: var(--bubble-lawyer); border-left: 3px solid var(--lawyer); }
+.msg--wide { max-width: 100%; width: 100%; white-space: normal; }
+.msg--system { align-self: center; background: none; box-shadow: none; color: var(--muted); font-size: 12px; padding: 2px 8px; text-align: center; }
+.msg__time { display: block; text-align: right; font-size: 11px; color: var(--muted); margin-top: 2px; }
+.msg__meta { display: block; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+.msg__sign { display: block; font-size: 12px; font-weight: 600; color: var(--lawyer); margin-bottom: 3px; }
+.msg__placeholder { border-bottom: 1px dashed currentColor; color: var(--accent); }
+.msg__voice { display: flex; align-items: center; gap: 8px; }
+.msg__play { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); flex: none; position: relative; }
+.msg__play::after { content: ""; position: absolute; left: 12px; top: 9px; border: 6px solid transparent; border-left: 9px solid var(--surface); border-right: 0; }
+.msg__wave { height: 18px; width: 120px; max-width: 40vw; background: repeating-linear-gradient(90deg, var(--accent) 0 2px, transparent 2px 5px); opacity: .5; clip-path: polygon(0 40%, 10% 10%, 20% 60%, 30% 0, 40% 50%, 50% 20%, 60% 70%, 70% 10%, 80% 40%, 90% 20%, 100% 50%, 100% 100%, 0 100%); }
+.msg__photo { width: 200px; max-width: 100%; aspect-ratio: 3 / 4; border-radius: 8px; background: #fbfaf6; color: #333; padding: 14px 12px; font-size: 9px; line-height: 1.5; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); }
+.msg__photo-title { font-family: var(--font-head); font-size: 12px; text-align: center; font-weight: 600; }
+.msg__photo-line { height: 4px; background: #d6d2c8; border-radius: 2px; }
+.msg__photo-line--short { width: 60%; }
+.msg__contact { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.msg__keyboard { display: grid; gap: 4px; margin-top: 6px; }
+.msg__keyboard--two { grid-template-columns: 1fr 1fr; }
+.msg__key { border: 0; border-radius: 6px; padding: 7px 8px; min-height: 36px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 500; text-align: center; }
+.msg__key:disabled { opacity: .55; }
+.msg__key--chosen { opacity: 1 !important; outline: 2px solid var(--accent); outline-offset: -2px; }
+.msg__key--wide { grid-column: 1 / -1; }
+
+.reply-kb { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+.reply-kb__key { flex: 1 1 auto; min-height: 40px; max-width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+.reply-kb__key--accent { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+/* Reply-клавиатура запроса номера: кнопки во всю ширину, как в Telegram */
+.reply-kb--stack { flex-direction: column; gap: 4px; }
+.reply-kb--stack .reply-kb__key { width: 100%; min-height: 44px; font-size: 14px; }
+
+.phone-form { display: flex; gap: 6px; width: 100%; }
+.phone-form__input { flex: 1; min-width: 0; min-height: 44px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--surface); font-size: 15px; }
+.phone-form__send { border: 0; border-radius: 8px; padding: 0 14px; min-height: 44px; background: var(--accent); color: var(--surface); font-weight: 500; }
+
+.typing { align-self: flex-start; background: var(--bubble-in); border-radius: 12px; padding: 10px 12px; display: flex; gap: 4px; }
+.typing__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typing 1s infinite; }
+.typing__dot:nth-child(2) { animation-delay: .15s; }
+.typing__dot:nth-child(3) { animation-delay: .3s; }
+
+/* Lawyer card inside chat */
+.card-msg { max-width: 92%; white-space: normal; }
+.card-msg__head { font-weight: 600; margin-bottom: 4px; }
+.card-msg__row { margin: 3px 0; }
+.card-msg__row b { font-weight: 600; }
+.card-msg__decision { margin-top: 6px; font-size: 13px; color: var(--muted); font-style: italic; }
+.card-msg__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; }
+.urgency { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.urgency--critical { background: var(--critical); }
+.urgency--high { background: var(--high); }
+.urgency--medium { background: var(--medium); }
+.urgency--low { background: var(--low); }
+
+/* Lawyer writes to the client through the bot */
+.composer { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.composer__chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.composer__chip {
+  max-width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px;
+  padding: 5px 10px; min-height: 32px; font-size: 12px; text-align: left;
+  white-space: nowrap; text-overflow: ellipsis;
+}
+.composer__form { display: flex; gap: 6px; }
+.composer__input { flex: 1; min-width: 0; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--surface); font-size: 14px; }
+.composer__send { border: 0; border-radius: 8px; padding: 0 14px; min-height: 40px; background: var(--accent); color: var(--surface); font-size: 14px; font-weight: 500; }
+.composer__return { align-self: flex-start; border: 1px solid var(--lawyer); background: none; color: var(--lawyer); border-radius: 8px; padding: 6px 12px; min-height: 36px; font-size: 13px; }
+
+/* Date and time picker for «Запропонувати час» */
+.picker { white-space: normal; }
+.picker__title { font-weight: 600; margin: 0 0 6px; }
+.picker__month { color: var(--muted); font-size: 12px; margin: 0 0 6px; }
+.picker__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.picker__weekday { text-align: center; font-size: 11px; color: var(--muted); padding-bottom: 2px; }
+.picker__weekday--weekend { opacity: .6; }
+.picker__day, .picker__slot {
+  min-height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+  font-size: 14px; padding: 0; font-variant-numeric: tabular-nums;
+}
+@media (max-width: 420px) {
+  .msg--wide { padding-left: 8px; padding-right: 8px; }
+  .picker__week { column-gap: 2px; }
+}
+.picker__day--weekend { background: var(--surface-2); color: var(--muted); }
+.picker__day--today { border-color: var(--accent); font-weight: 600; }
+.picker__day:disabled, .picker__slot:disabled { opacity: .35; }
+.picker__day--selected, .picker__slot--selected { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.picker__slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 4px; }
+.picker__slot--busy { text-decoration: line-through; background: var(--surface-2); }
+.picker__legend { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+.picker__text { width: 100%; min-height: 96px; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--surface); font-size: 14px; line-height: 1.4; }
+.picker__actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.picker__send { border: 0; border-radius: 8px; padding: 0 14px; min-height: 40px; background: var(--accent); color: var(--surface); font-weight: 500; }
+.picker__back { border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 40px; background: none; font-size: 13px; }
+
+@keyframes msg-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes typing { 50% { opacity: .3; } }
+@keyframes pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) {
+  .msg { animation: none; }
+  .scenarios__auto--on .scenarios__auto-dot { animation: none; }
+}
+
+/* Panel */
+.panel__title { font-family: var(--font-head); font-size: 26px; font-weight: 600; margin: 0 0 4px; }
+.panel__sub { color: var(--muted); margin: 0 0 20px; overflow-wrap: anywhere; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+@media (max-width: 720px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stats__item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.stats__value { font-family: var(--font-head); font-size: 30px; font-weight: 600; line-height: 1.1; }
+.stats__label { color: var(--muted); font-size: 13px; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.filters__btn { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 5px 12px; font-size: 13px; }
+.filters__btn--active { background: var(--text); color: var(--surface); border-color: var(--text); }
+
+.cases { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.cases__head { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 500; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.cases__row { cursor: pointer; }
+@media (any-hover: hover) { .cases__row:hover { background: var(--surface-2); } }
+.cases__cell { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.cases__row:last-child .cases__cell { border-bottom: 0; }
+.cases__title { font-weight: 500; }
+.cases__client { color: var(--muted); font-size: 13px; }
+.status { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 4px; background: var(--surface-2); white-space: nowrap; }
+.status--new { background: var(--accent-soft); color: var(--accent); }
+@media (max-width: 720px) {
+  .cases, .cases__body, .cases__row, .cases__cell { display: block; }
+  .cases { background: none; border: 0; }
+  .cases__thead { display: none; }
+  .cases__row { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; padding: 10px 0; }
+  .cases__cell { border: 0; padding: 3px 14px; }
+}
+
+.case { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-top: 18px; }
+.case[hidden] { display: none; }
+.case__title { font-family: var(--font-head); font-size: 21px; margin: 0 0 4px; }
+.case__meta { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.case__grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 860px) { .case__grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .case { padding: 14px; } }
+.case__label { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 4px; }
+.case__text { margin: 0; overflow-wrap: anywhere; }
+.case__actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 0; }
+.case__action { border: 1px solid var(--accent); background: none; color: var(--accent); border-radius: 8px; padding: 0 14px; min-height: 40px; font-size: 14px; }
+.case__action:disabled { opacity: .5; }
+.case__action--lawyer { border-color: var(--lawyer); color: var(--lawyer); }
+.case__picker { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.timeline { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+.timeline__item { font-size: 14px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); overflow-wrap: anywhere; }
+.timeline__item--bot { background: var(--accent-soft); }
+.timeline__item--lawyer { background: var(--bubble-lawyer); border-left: 3px solid var(--lawyer); }
+.timeline__item--system { background: none; color: var(--muted); font-size: 12px; text-align: center; padding: 2px; }
+.timeline__who { font-size: 12px; color: var(--muted); display: block; }
+
+.footer { border-top: 1px solid var(--line); }
+.footer__inner { max-width: 1240px; margin: 0 auto; padding: 14px 16px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; }
+.footer__copy, .footer__dev { margin: 0; font-size: 12px; color: var(--muted); }
+.footer__dev-link { color: inherit; }
+</style>
+</head>
+<body>
+<div class="demo-ribbon" role="note">
+  <span class="demo-ribbon__text">Демо для <span data-demo="name"></span></span>
+  <span aria-hidden="true">·</span>
+  <a class="demo-ribbon__link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a>
+</div>
+
+<div class="wrapper">
+  <header class="header">
+    <div class="header__inner">
+      <p class="header__brand">AI-секретар адвоката</p>
+      <p class="header__note">Демо-імітація. Діалоги заздалегідь прописані, дані клієнтів вигадані.</p>
+      <nav class="header__tabs" aria-label="Розділи демо">
+        <button class="header__tab header__tab--active" data-view="bot" type="button">Бот у Telegram</button>
+        <button class="header__tab" data-view="panel" type="button">Панель адвоката</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="view view--active" id="view-bot">
+      <div class="scenarios">
+        <span class="scenarios__label">Сценарій:</span>
+        <button class="scenarios__btn scenarios__btn--active" data-scenario="labor" type="button">Звільнення без розрахунку</button>
+        <button class="scenarios__btn" data-scenario="military" type="button">Повістка з ТЦК + фото</button>
+        <button class="scenarios__btn" data-scenario="critical" type="button">Затримання зараз</button>
+        <button class="scenarios__restart" id="restart" type="button" data-auto-keep>Почати знову</button>
+        <button class="scenarios__auto scenarios__auto--on" id="auto-toggle" type="button" aria-pressed="true" data-auto-keep>
+          <span class="scenarios__auto-dot" aria-hidden="true"></span><span id="auto-label">Автопоказ ⏸</span>
+        </button>
+      </div>
+
+      <div class="stage">
+        <div class="stage__col">
+          <h2 class="stage__caption">Телефон клієнта</h2>
+          <p class="stage__hint" id="client-hint">Діалог іде сам. Натисніть будь-яку кнопку, і далі керуєте ви.</p>
+          <div class="chat">
+            <div class="chat__top">
+              <div class="chat__avatar" data-initials>П</div>
+              <div class="chat__who">
+                <p class="chat__name" id="bot-name">Правовий щит · секретар</p>
+                <p class="chat__status" id="client-status">бот</p>
+              </div>
+            </div>
+            <div class="chat__body" id="client-body"></div>
+            <div class="chat__bottom" id="client-bottom"><span class="chat__input">Повідомлення</span></div>
+          </div>
+        </div>
+
+        <div class="stage__col">
+          <h2 class="stage__caption">Телефон адвоката</h2>
+          <p class="stage__hint">Сюди приходить картка справи, коли бот зібрав інформацію. Можна написати клієнту самому.</p>
+          <div class="chat">
+            <div class="chat__top">
+              <div class="chat__avatar" data-initials>П</div>
+              <div class="chat__who">
+                <p class="chat__name" id="lawyer-chat-name">Правовий щит · заявки</p>
+                <p class="chat__status">сповіщення для адвоката</p>
+              </div>
+            </div>
+            <div class="chat__body" id="lawyer-body"></div>
+            <div class="chat__bottom" id="lawyer-bottom"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view panel" id="view-panel">
+      <h1 class="panel__title">Огляд</h1>
+      <p class="panel__sub" id="panel-sub">Олена Мирошник · бюро «Правовий щит», Київ</p>
+      <div class="stats" id="stats"></div>
+      <div class="filters" id="filters"></div>
+      <table class="cases">
+        <thead class="cases__thead">
+          <tr>
+            <th class="cases__head">Справа</th>
+            <th class="cases__head">Категорія</th>
+            <th class="cases__head">Терміновість</th>
+            <th class="cases__head">Статус</th>
+            <th class="cases__head">Надійшла</th>
+          </tr>
+        </thead>
+        <tbody class="cases__body" id="cases-body"></tbody>
+      </table>
+      <article class="case" id="case" hidden></article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <p class="footer__copy" id="footer-copy">© 2026 Правовий щит (демо)</p>
+      <p class="footer__dev">Розробка сайту — <a class="footer__dev-link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a></p>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* ==========================================================================
+   Демо «AI-секретар адвоката».
+   Автопоказ: сценарий идёт сам (labor → military → critical → labor …). Любой клик посетителя
+   по кнопке выключает автопоказ до «Почати знову» или переключателя «Автопоказ».
+   Данные лида — через shared/demo.js (<html data-demo-optional>: без ?d= — вымышленные значения).
+   ========================================================================== */
+
+// Темп автопоказа, мс
+const TEMPO = {
+  userStep: 2500,          // полоса на кнопке клиента перед «нажатием»
+  choice: 2500,            // слот, решение адвоката, вмешательство, выбор даты и времени
+  botTyping: 1100,         // «друкує…» перед ответом бота
+  botTypingCritical: 700,  // то же в срочном сценарии
+  voice: 500,              // распознавание голосового
+  card: 400,               // пауза перед карточкой адвокату
+  next: 5000,              // пауза после конца сценария
+};
+const ORDER = ['labor', 'military', 'critical'];
+
+const CATEGORY = { labor: 'Трудове', military: 'Військове', criminal: 'Кримінальне', family: 'Сімейне', traffic: 'ДТП', debt: 'Кредити', property: 'Нерухомість', administrative: 'Штрафи' };
+const URGENCY = { critical: 'критична', high: 'висока', medium: 'середня', low: 'низька' };
+const STATUS = { new: 'Нова', in_progress: 'В роботі', scheduled: 'Записаний', rejected: 'Відмова', closed: 'Закрита' };
+const SLOTS = ['Пт, 17.10 о 10:00', 'Пт, 17.10 о 15:00', 'Пн, 20.10 о 11:00'];
+const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+
+const $ = (id) => document.getElementById(id);
+const clientBody = $('client-body');
+const clientBottom = $('client-bottom');
+const lawyerBody = $('lawyer-body');
+const lawyerBottom = $('lawyer-bottom');
+const clientStatus = $('client-status');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const time = () => new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// [плейсхолдер] в тексте бота — подсвеченное место под данные адвоката
+const fmt = (s) => esc(s).replace(/\[([^\]]+)\]/g, '<span class="msg__placeholder">$1</span>');
+
+/* --- Персонализация ------------------------------------------------------ */
+
+let P = null;
+
+function initials(name) {
+  const q = name.match(/«([^»]+)»/);
+  const words = (q ? q[1] : name).replace(/[^\p{L}\s'’-]/gu, ' ').trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return 'А';
+  return (q || words.length === 1 ? words[0][0] : words[0][0] + words[1][0]).toUpperCase();
+}
+
+// Пол — из поля grateful (как «вдячна/вдячний» в других демо): «будемо вдячні» — бюро/объединение
+function profile(data) {
+  if (!data) {
+    return {
+      person: 'Олена Мирошник', bot: 'Правовий щит', city: 'Київ', gender: 'female', custom: false,
+      sub: 'Олена Мирошник · бюро «Правовий щит», Київ', copy: '© 2026 Правовий щит (демо)',
+      phone: '[номер адвоката]', office: '[адреса офісу]', avatar: 'П',
+    };
+  }
+  const name = String(data.name || '').trim() || 'Адвокат';
+  const city = String(data.city || '').trim();
+  const gr = String(data.grateful || '');
+  const gender = /вдячна/.test(gr) ? 'female' : /вдячний/.test(gr) ? 'male' : 'plural';
+  return {
+    person: name, bot: name, city, gender, custom: true,
+    sub: city ? `${name} · ${city}` : name, copy: `Демо для ${name}${city ? ', ' + city : ''}`,
+    phone: '[ваш номер]', office: '[адреса вашого офісу]', avatar: initials(name),
+  };
+}
+
+const g = (f, m, pl) => (P.gender === 'plural' ? pl : P.gender === 'male' ? m : f);
+const signature = () => (P.gender === 'plural' ? P.person : `Адвокат ${P.person}`);
+
+function buildScenarios() {
+  const cc = P.city || 'Київ'; // город клиента
+  const intro = P.gender === 'plural' ? `Добрий день, це ${P.person}.` : `Добрий день, це адвокат ${P.person}.`;
+  const saw = g('Подивилась', 'Подивився', 'Ми подивились');
+  return {
+    labor: {
+      title: 'Невиплата розрахунку при звільненні',
+      steps: [
+        { from: 'user', text: 'Добрий день. Мене звільнили, а розрахунок так і не виплатили.' },
+        { from: 'bot', text: 'Добрий день. Прикро, що так сталося, допоможу підготувати справу для адвоката. Коли саме вас звільнили?' },
+        { from: 'user', text: '2 жовтня' },
+        { from: 'bot', text: 'Зрозуміло. Яка підстава вказана в наказі про звільнення?', quick: ['За власним бажанням', 'За угодою сторін', 'Скорочення', 'Не знаю'] },
+        { from: 'user', text: 'За власним бажанням' },
+        { from: 'bot', text: 'Яку приблизно суму вам мають виплатити?' },
+        { from: 'user', voice: '0:06', text: 'Десь сорок п\'ять тисяч. Там зарплата за вересень і відпускні.' },
+        { from: 'bot', text: 'Дякую. Ви були працевлаштовані офіційно?', quick: ['Так', 'Ні', 'Частково'] },
+        { from: 'user', text: 'Так, три роки' },
+        { from: 'bot', text: 'Які документи у вас є на руках? Можете надіслати фото наказу або трудового договору.' },
+        { from: 'user', photo: 'НАКАЗ № 118-к', text: '' },
+        { from: 'bot', text: 'Бачу наказ № 118-к від 02.10.2026 про звільнення за власним бажанням. Як до вас звертатися і з якого ви міста?' },
+        { from: 'user', text: `Андрій, ${cc}` },
+        { from: 'bot', text: 'Андрію, поділіться, будь ласка, номером телефону, щоб адвокат міг з вами зв\'язатися.', contact: true },
+        { from: 'user', contact: '+380 •• ••• •• 41' },
+        { from: 'bot', text: 'Дякую! Передаю справу адвокату. Оберіть зручний час консультації:', slots: true, card: true },
+      ],
+      card: {
+        id: 101, urgency: 'high', category: 'labor',
+        summary: 'Клієнта звільнено 02.10.2026 за власним бажанням, розрахунок (~45 000 грн: зарплата за вересень і відпускні) не виплачено. Працював офіційно 3 роки.',
+        goal: 'Стягнути борг і компенсацію за затримку розрахунку.',
+        deadlines: 'звільнення 02.10.2026; строк звернення до суду щодо розрахунку — уточнити',
+        documents: 'надано 1 (наказ № 118-к) · потрібно ще: трудовий договір, довідка про доходи',
+        client: `Андрій, +380 •• ••• •• 41, @andrii_k, ${cc}`,
+      },
+      chips: [`${intro} ${saw} ваш наказ, обговоримо на консультації, як повернути розрахунок.`, 'Візьміть, будь ласка, на консультацію трудовий договір і довідку про доходи.', 'Чи зручно вам підійти сьогодні о 16:00?'],
+      replies: ['Добре, дякую! Візьму документи з собою.', 'А скільки часу це може зайняти?'],
+    },
+    military: {
+      title: 'Повістка ТЦК, відстрочка',
+      steps: [
+        { from: 'user', text: 'Прийшла повістка з ТЦК. Скажіть чесно, мене заберуть?' },
+        { from: 'bot', text: 'Розумію, як це хвилює. Оцінити ситуацію і порадити, що робити, зможе адвокат на консультації, а я допоможу підготуватися, щоб вона була максимально корисною. Можете надіслати фото повістки?' },
+        { from: 'user', photo: 'ПОВІСТКА', text: '' },
+        { from: 'bot', text: 'Бачу: повістка районного ТЦК, явка 21.10.2026 о 09:00. До явки 6 днів, тому позначаю справу як термінову. Чи маєте ви підстави для відстрочки?', quick: ['Так', 'Не знаю', 'Ні'] },
+        { from: 'user', text: 'Не знаю. У мене двоє дітей, 7 і 12 років' },
+        { from: 'bot', text: 'Записала. Ви у шлюбі, і чи працює дружина?', quick: ['Так, працює', 'Так, не працює', 'Не в шлюбі'] },
+        { from: 'user', text: 'Так, не працює' },
+        { from: 'bot', text: 'Дякую. Як до вас звертатися і з якого ви міста?' },
+        { from: 'user', text: `Віктор, ${cc}` },
+        { from: 'bot', text: 'Вікторе, поділіться, будь ласка, номером телефону для зв\'язку з адвокатом.', contact: true },
+        { from: 'user', contact: '+380 •• ••• •• 07' },
+        { from: 'bot', text: 'Дякую! Передаю справу адвокату. Через близьку дату явки раджу обрати найближчий час:', slots: true, card: true },
+      ],
+      card: {
+        id: 102, urgency: 'high', category: 'military',
+        summary: 'Отримав повістку районного ТЦК, явка 21.10.2026 о 09:00. Двоє дітей (7 і 12 років), дружина не працює. Чи є підстави для відстрочки, не знає.',
+        goal: 'З\'ясувати право на відстрочку до дати явки.',
+        deadlines: 'явка до ТЦК 21.10.2026 09:00 (через 6 днів)',
+        documents: 'надано 1 (повістка) · потрібно ще: свідоцтва про народження дітей, свідоцтво про шлюб, довідка про склад сім\'ї',
+        client: `Віктор, +380 •• ••• •• 07, @viktor_s, ${cc}`,
+      },
+      chips: [`${intro} ${saw} вашу повістку, обговоримо відстрочку на консультації.`, 'Візьміть, будь ласка, свідоцтва про народження дітей на консультацію.', 'До консультації нічого не підписуйте в ТЦК.'],
+      replies: ['Добре, візьму. Дякую!', 'Свідоцтво про шлюб теж брати?'],
+    },
+    critical: {
+      title: 'Затримання родича',
+      steps: [
+        { from: 'user', text: 'Мого брата щойно затримала поліція!! Що робити?' },
+        { from: 'bot', critical: true, text: `Розумію, це дуже тривожно. ${g('Адвокат уже отримав', 'Адвокат уже отримав', 'Адвокати вже отримали')} сповіщення. Телефонуйте прямо зараз: ${P.phone}.\n\nДо приїзду адвоката брату краще нічого не підписувати і не давати пояснень.\n\nПоділіться, будь ласка, своїм номером, щоб адвокат міг одразу передзвонити.`, contact: true, card: true },
+        { from: 'user', contact: '+380 •• ••• •• 93' },
+        { from: 'bot', text: 'Дякую, номер передала адвокату. Якщо знаєте, де саме тримають брата, напишіть, і я одразу передам.' },
+        { from: 'user', text: 'Районне управління поліції, біля вокзалу' },
+        { from: 'bot', text: g('Передала. Адвокат зв\'яжеться з вами найближчим часом.', 'Передала. Адвокат зв\'яжеться з вами найближчим часом.', 'Передала. З вами зв\'яжуться найближчим часом.') },
+      ],
+      card: {
+        id: 103, urgency: 'critical', category: 'criminal',
+        summary: 'Брата клієнтки щойно затримала поліція. Подробиці невідомі.',
+        goal: 'Терміновий захист затриманого.',
+        deadlines: 'затримання зараз',
+        documents: 'не надано',
+        client: 'Ірина, +380 •• ••• •• 93, @iryna_p, місто не вказано',
+      },
+      chips: [`${intro} Вже їду до управління поліції.`, 'Передайте брату: без адвоката нічого не підписувати і не давати пояснень.', 'Напишіть, будь ласка, ПІБ брата і дату народження.'],
+      replies: ['Дякую! Зараз напишу.', 'Передала брату, дякую.'],
+    },
+  };
+}
+
+let SC = {};
+
+/* --- Автопоказ ----------------------------------------------------------- */
+
+let auto = true;
+let autoHook = null;  // ожидающее автодействие; запускается снова, если автопоказ включили
+let autoSeq = 0;      // смена — отмена текущего ожидания
+let runId = 0;
+let current = 'labor';
+
+// Ждёт ms «видимого» времени, пока включён автопоказ; вкладка скрыта — время стоит
+function autoWait(ms, onTick) {
+  const seq = autoSeq;
+  const run = runId;
+  return new Promise((resolve) => {
+    let elapsed = 0;
+    let last = performance.now();
+    const tick = () => {
+      const now = performance.now();
+      if (!auto || seq !== autoSeq || run !== runId) return resolve(false);
+      if (!document.hidden) elapsed += Math.min(now - last, 200);
+      last = now;
+      if (onTick) onTick(Math.min(elapsed / ms, 1));
+      if (elapsed >= ms) return resolve(true);
+      setTimeout(tick, 40);
+    };
+    tick();
+  });
+}
+
+function scheduleAuto(job) {
+  autoHook = job;
+  if (auto) startHook();
+}
+
+function startHook() {
+  if (!autoHook) return;
+  autoSeq++;
+  autoHook();
+}
+
+function setAuto(on) {
+  auto = on;
+  autoSeq++;
+  const btn = $('auto-toggle');
+  btn.classList.toggle('scenarios__auto--on', on);
+  btn.setAttribute('aria-pressed', String(on));
+  $('auto-label').textContent = on ? 'Автопоказ ⏸' : 'Автопоказ ▶';
+  $('client-hint').textContent = on
+    ? 'Діалог іде сам. Натисніть будь-яку кнопку, і далі керуєте ви.'
+    : 'Натискайте кнопки, щоб відповідати за клієнта.';
+  if (on) startHook();
+}
+
+// «Нажать» кнопку после паузы с полосой прогресса. target — элемент или функция, его находящая
+function autoPress(target, ms) {
+  const find = typeof target === 'function' ? target : () => target;
+  const run = runId;
+  scheduleAuto(async function job() {
+    const seq = autoSeq;
+    let el = find();
+    while ((!el || el.disabled) && auto && seq === autoSeq && run === runId && autoHook === job) {
+      await sleep(150);
+      el = find();
+    }
+    if (!el || el.disabled || seq !== autoSeq || autoHook !== job) return;
+    const bar = document.createElement('span');
+    bar.className = 'autobar' + (reduceMotion.matches ? ' autobar--static' : '');
+    el.appendChild(bar);
+    const ok = await autoWait(ms, (p) => { if (!reduceMotion.matches) bar.style.transform = `scaleX(${p})`; });
+    bar.remove();
+    if (!ok || autoHook !== job || !el.isConnected || el.disabled) return;
+    autoHook = null;
+    el.click();
+  });
+}
+
+// Пауза автопоказа (промис выполняется только при включённом автопоказе)
+function autoPause(ms) {
+  return new Promise((resolve) => scheduleAuto(async function job() {
+    const ok = await autoWait(ms);
+    if (!ok || autoHook !== job) return;
+    autoHook = null;
+    resolve();
+  }));
+}
+
+// Ждёт условие; false — сценарий сменился
+function waitFor(cond, run) {
+  return new Promise((resolve) => {
+    const tick = () => {
+      if (run !== runId) return resolve(false);
+      if (cond()) return resolve(true);
+      setTimeout(tick, 100);
+    };
+    tick();
+  });
+}
+
+// Клик посетителя по любой кнопке демо (или строке панели) — ручной режим
+document.addEventListener('click', (e) => {
+  if (!e.isTrusted || !auto) return;
+  const el = e.target.closest('button, .cases__row');
+  if (!el || el.closest('[data-auto-keep]')) return;
+  setAuto(false);
+}, true);
+document.addEventListener('input', (e) => { if (e.isTrusted && auto) setAuto(false); }, true);
+
+/* --- Состояние текущего сценария ---------------------------------------- */
+
+let S = null;
+let LOG = [];
+
+function freshState() {
+  return {
+    handoff: false, composerOpen: false, draft: '', replyIdx: 0, lawyerSpoke: false,
+    taken: false, rejected: false, slotsDecided: false, picker: null, proposal: null, caseRow: null,
+  };
+}
+
+function scrollDown(body) { body.scrollTop = body.scrollHeight; }
+
+function addMsg(body, cls, html) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + cls;
+  el.innerHTML = html;
+  body.appendChild(el);
+  scrollDown(body);
+  return el;
+}
+
+function log(who, text) { LOG.push({ who, text }); }
+
+function botSay(text, extra = '') {
+  addMsg(clientBody, 'msg--in', `${fmt(text)}${extra}<span class="msg__time">${time()}</span>`);
+  log('bot', text);
+}
+
+function systemLine(text) {
+  addMsg(clientBody, 'msg--system', esc(text));
+  log('system', text);
+}
+
+function userBubble(step) {
+  const t = `<span class="msg__time">${time()}</span>`;
+  if (step.voice) {
+    addMsg(clientBody, 'msg--out', `<div class="msg__voice"><span class="msg__play"></span><span class="msg__wave"></span><span>${step.voice}</span></div>${t}`);
+    log('client', '[голосове] ' + step.text);
+  } else if (step.photo) {
+    addMsg(clientBody, 'msg--out', `<div class="msg__photo"><div class="msg__photo-title">${esc(step.photo)}</div><div class="msg__photo-line"></div><div class="msg__photo-line"></div><div class="msg__photo-line msg__photo-line--short"></div><div class="msg__photo-line"></div><div class="msg__photo-line msg__photo-line--short"></div></div>${t}`);
+    log('client', '[фото документа: ' + step.photo + ']');
+  } else if (step.contact) {
+    addMsg(clientBody, 'msg--out', `<div class="msg__contact">Контакт: ${esc(step.contact)}</div>${t}`);
+    log('client', '[контакт: ' + step.contact + ']');
+  } else {
+    addMsg(clientBody, 'msg--out', `${esc(step.text)}${t}`);
+    log('client', step.text);
+  }
+}
+
+/* --- Нижняя панель клиента ---------------------------------------------- */
+
+let clientPrompt = null; // клавиатура текущего сценарного шага клиента
+
+function renderClientBottom() {
+  clientBottom.innerHTML = '';
+  const sc = SC[current];
+  if (S.handoff && S.replyIdx < sc.replies.length) {
+    const kb = document.createElement('div');
+    kb.className = 'reply-kb';
+    kb.innerHTML = `<button class="reply-kb__key reply-kb__key--accent" type="button" data-reply>Відповісти: «${esc(sc.replies[S.replyIdx])}»</button>`;
+    clientBottom.appendChild(kb);
+    return;
+  }
+  if (!S.handoff && clientPrompt) { clientPrompt(); return; }
+  clientBottom.innerHTML = '<span class="chat__input">Повідомлення</span>';
+}
+
+// Кнопки для сценарного ответа клиента; при автопоказе нужная «нажимается» сама
+function waitForUser(step, prevBot) {
+  return new Promise((resolve) => {
+    clientPrompt = () => {
+      const kb = document.createElement('div');
+      kb.className = 'reply-kb';
+      const add = (label, main) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'reply-kb__key' + (main ? ' reply-kb__key--accent' : '');
+        if (main) b.dataset.step = '';
+        b.textContent = label;
+        b.addEventListener('click', () => {
+          clientPrompt = null;
+          clientBottom.innerHTML = '<span class="chat__input">Повідомлення</span>';
+          resolve();
+        });
+        kb.appendChild(b);
+      };
+      if (step.contact) {
+        // Reply-клавиатура Telegram: KeyboardButton с request_contact и «Інший номер»
+        kb.classList.add('reply-kb--stack');
+        add('📱 Поділитися моїм номером', true);
+        const other = document.createElement('button');
+        other.type = 'button';
+        other.className = 'reply-kb__key';
+        other.textContent = '✏️ Інший номер';
+        other.addEventListener('click', () => askOtherPhone(resolve));
+        kb.appendChild(other);
+      } else if (step.photo) add('Надіслати фото документа', true);
+      else if (step.voice) add('Надіслати голосове', true);
+      else if (prevBot && prevBot.quick && prevBot.quick.includes(step.text)) prevBot.quick.forEach((q) => add(q, q === step.text));
+      else add('Надіслати: «' + (step.text.length > 40 ? step.text.slice(0, 40) + '…' : step.text) + '»', true);
+      clientBottom.appendChild(kb);
+    };
+    renderClientBottom();
+    autoPress(() => clientBottom.querySelector('[data-step]'), TEMPO.userStep);
+  });
+}
+
+// «✏️ Інший номер»: бот просит номер, посетитель вводит его сам; формат +380XXXXXXXXX или 0XXXXXXXXX
+let phoneDraft = '';
+async function askOtherPhone(resolve) {
+  const run = runId;
+  clientPrompt = null;
+  addMsg(clientBody, 'msg--out', `✏️ Інший номер<span class="msg__time">${time()}</span>`);
+  log('client', 'Інший номер');
+  clientBottom.innerHTML = '<span class="chat__input">Повідомлення</span>';
+  await botTyping(TEMPO.botTyping);
+  if (run !== runId) return;
+  botSay('Напишіть, будь ласка, номер, за яким зручно зв\'язатися.');
+  phoneDraft = '';
+  clientPrompt = () => {
+    const form = document.createElement('form');
+    form.className = 'phone-form';
+    form.innerHTML = '<input class="phone-form__input" type="tel" inputmode="tel" autocomplete="off" placeholder="+380 __ ___ __ __" aria-label="Номер телефону"><button class="phone-form__send" type="submit">Надіслати</button>';
+    const input = form.querySelector('.phone-form__input');
+    input.value = phoneDraft;
+    input.addEventListener('input', () => { phoneDraft = input.value; });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const raw = input.value.trim();
+      if (!raw) return;
+      const digits = raw.replace(/[\s()-]/g, '');
+      addMsg(clientBody, 'msg--out', `${esc(raw)}<span class="msg__time">${time()}</span>`);
+      log('client', raw);
+      phoneDraft = '';
+      if (/^(\+?380|0)\d{9}$/.test(digits)) {
+        clientPrompt = null;
+        clientBottom.innerHTML = '<span class="chat__input">Повідомлення</span>';
+        resolve('typed');
+        return;
+      }
+      input.value = '';
+      await botTyping(TEMPO.botTyping);
+      if (run !== runId) return;
+      botSay('Схоже, в номері помилка. Напишіть, будь ласка, у форматі +380 67 123 45 67 або 067 123 45 67.');
+    });
+    clientBottom.appendChild(form);
+  };
+  renderClientBottom();
+}
+
+async function botTyping(ms) {
+  clientStatus.textContent = 'друкує…';
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.innerHTML = '<span class="typing__dot"></span><span class="typing__dot"></span><span class="typing__dot"></span>';
+  clientBody.appendChild(t);
+  scrollDown(clientBody);
+  await sleep(ms);
+  t.remove();
+  clientStatus.textContent = 'бот';
+}
+
+/* --- Карточка адвокату --------------------------------------------------- */
+
+function sendCard(sc) {
+  const c = sc.card;
+  addMsg(lawyerBody, 'msg--in card-msg', `
+    <div class="card-msg__head"><span class="urgency urgency--${c.urgency}"></span>${CATEGORY[c.category]} · Терміновість: ${URGENCY[c.urgency]}</div>
+    <div class="card-msg__row"><b>Суть:</b> ${esc(c.summary)}</div>
+    <div class="card-msg__row"><b>Мета клієнта:</b> ${esc(c.goal)}</div>
+    <div class="card-msg__row"><b>Важливі строки:</b> ${esc(c.deadlines)}</div>
+    <div class="card-msg__row"><b>Документи:</b> ${esc(c.documents)}</div>
+    <div class="card-msg__row"><b>Клієнт:</b> ${esc(c.client)}</div>
+    <div class="card-msg__decision" hidden></div>
+    <div class="card-msg__actions">
+      <button class="msg__key" data-act="take" type="button">Взяти в роботу</button>
+      <button class="msg__key" data-act="time" type="button">Запропонувати час</button>
+      <button class="msg__key" data-act="reject" type="button">Відмовити</button>
+      <button class="msg__key" data-act="panel" type="button">Відкрити в панелі</button>
+      <button class="msg__key msg__key--wide" data-act="write" type="button">Написати клієнту</button>
+    </div>
+    <span class="msg__time">${time()}</span>`);
+}
+
+function cardNote(text) {
+  const d = lawyerBody.querySelector('.card-msg__decision');
+  if (!d) return;
+  d.hidden = false;
+  d.textContent = `${text} · ${P.person}, ${time()}`;
+}
+
+function cardButtons() {
+  const q = (a) => lawyerBody.querySelector(`.card-msg [data-act="${a}"]`);
+  const set = (a, off) => { const b = q(a); if (b) b.disabled = off; };
+  set('take', S.taken || S.rejected);
+  set('reject', S.taken || S.rejected);
+  set('time', S.rejected || !!S.proposal || !!S.picker);
+  set('write', S.rejected);
+  ['take', 'reject'].forEach((a) => { const b = q(a); if (b) b.classList.toggle('msg__key--chosen', a === 'take' ? S.taken : S.rejected); });
+  const t = q('time'); if (t) t.classList.toggle('msg__key--chosen', !!S.proposal);
+}
+
+function decide(act) {
+  const row = S.caseRow;
+  if (act === 'take' && !S.taken && !S.rejected) {
+    S.taken = true;
+    cardNote('Взято в роботу');
+    if (row && row.status === 'new') row.status = 'in_progress';
+    botSay(P.gender === 'plural'
+      ? `${P.person}: вашу справу взяли в роботу, з вами зв'яжуться найближчим часом.`
+      : `Адвокат ${P.person} ${g('взяла', 'взяв', 'взяли')} вашу справу в роботу і зв'яжеться з вами.`);
+  }
+  if (act === 'reject' && !S.taken && !S.rejected) {
+    S.rejected = true;
+    S.picker = null;
+    cardNote('Відмовлено');
+    if (row) row.status = 'rejected';
+    const sorry = P.gender === 'plural' ? 'На жаль, за цю справу не зможуть взятися.' : 'На жаль, адвокат не зможе взятися за цю справу.';
+    botSay(`${sorry} Радимо звернутися до безоплатної правничої допомоги: 0 800 213 103.`);
+  }
+  if (act === 'time' && !S.picker && !S.proposal && !S.rejected) {
+    S.picker = { step: 'date', date: null, time: '', text: '' };
+  }
+  if (act === 'write' && !S.rejected) S.composerOpen = true;
+  renderLive();
+}
+
+/* --- Вмешательство адвоката ---------------------------------------------- */
+
+function lawyerSend(text) {
+  text = text.trim();
+  if (!text) return;
+  if (!S.handoff) {
+    S.handoff = true;
+    systemLine('Далі відповідає адвокат, бот на паузі');
+    addMsg(lawyerBody, 'msg--system', 'Ви в розмові з клієнтом. Бот на паузі');
+  }
+  addMsg(clientBody, 'msg--in msg--lawyer', `<span class="msg__sign">${esc(signature())}</span>${esc(text)}<span class="msg__time">${time()}</span>`);
+  addMsg(lawyerBody, 'msg--out', `<span class="msg__meta">Клієнту, через бота</span>${esc(text)}<span class="msg__time">${time()}</span>`);
+  log('lawyer', text);
+  S.draft = '';
+  S.lawyerSpoke = true;
+  renderLive();
+}
+
+function clientReply() {
+  const sc = SC[current];
+  const text = sc.replies[S.replyIdx];
+  if (!text) return;
+  S.replyIdx++;
+  addMsg(clientBody, 'msg--out', `${esc(text)}<span class="msg__time">${time()}</span>`);
+  addMsg(lawyerBody, 'msg--in', `<span class="msg__meta">Клієнт пише</span>${esc(text)}<span class="msg__time">${time()}</span>`);
+  log('client', text);
+  renderLive();
+}
+
+function returnToBot() {
+  if (!S.handoff) return;
+  S.handoff = false;
+  S.composerOpen = false;
+  systemLine('Розмову повернуто боту, бот знову відповідає');
+  addMsg(lawyerBody, 'msg--system', 'Розмову повернуто боту');
+  renderLive();
+}
+
+function composerHTML(withReturn) {
+  const chips = SC[current].chips.map((c, i) => `<button class="composer__chip" type="button" data-chip="${i}" title="${esc(c)}">${esc(c)}</button>`).join('');
+  return `<div class="composer">
+    <div class="composer__chips">${chips}</div>
+    <form class="composer__form">
+      <input class="composer__input" type="text" value="${esc(S.draft)}" placeholder="Напишіть клієнту…" aria-label="Повідомлення клієнту від імені бота">
+      <button class="composer__send" type="submit">Надіслати</button>
+    </form>
+    ${withReturn && S.handoff ? '<button class="composer__return" type="button">Повернути боту</button>' : ''}
+  </div>`;
+}
+
+/* --- «Запропонувати час»: дата, время, текст ----------------------------- */
+
+const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const dateLabel = (d) => d.toLocaleDateString('uk-UA', { weekday: 'short', day: 'numeric', month: 'long' });
+const TIMES = Array.from({ length: 18 }, (_, i) => `${String(9 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`);
+
+function pickerDays() {
+  const t = today0();
+  const dow = (t.getDay() + 6) % 7;
+  const start = new Date(t);
+  start.setDate(t.getDate() - dow);
+  const weeks = dow >= 3 ? 4 : 3; // не меньше двух недель вперёд
+  return Array.from({ length: weeks * 7 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
+}
+
+// Занятые слоты — детерминированно по дате (в жизни — из D1 или Google Calendar)
+function slotBusy(d, i) { return (d.getDate() * 7 + i * 5) % 6 === 0 || i === 6; }
+function slotPast(d, t) {
+  const now = new Date();
+  if (dayKey(d) !== dayKey(now)) return false;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m <= now.getHours() * 60 + now.getMinutes() + 30;
+}
+
+function proposalText(d, t) {
+  const when = `${dateLabel(d)} о ${t}`;
+  if (P.gender === 'plural') return `Добрий день! Можемо провести консультацію ${when}. Вам зручно, чи підібрати інший час?`;
+  if (S.handoff) return `Добрий день! Зможу провести консультацію ${when}. Вам зручно, чи підібрати інший час?`;
+  return `Добрий день! Адвокат ${P.person} зможе провести консультацію ${when}. Вам зручно, чи підібрати інший час?`;
+}
+
+function pickerHTML() {
+  const pk = S.picker;
+  if (pk.step === 'date') {
+    const days = pickerDays();
+    const t = today0();
+    const months = [...new Set(days.map((d) => d.toLocaleDateString('uk-UA', { month: 'long' })))].join(' – ');
+    const head = WEEKDAYS.map((w, i) => `<span class="picker__weekday${i >= 5 ? ' picker__weekday--weekend' : ''}">${w}</span>`).join('');
+    const cells = days.map((d) => {
+      const wk = (d.getDay() + 6) % 7 >= 5;
+      const cls = 'picker__day' + (wk ? ' picker__day--weekend' : '') + (dayKey(d) === dayKey(t) ? ' picker__day--today' : '');
+      return `<button class="${cls}" type="button" data-date="${dayKey(d)}" aria-label="${esc(dateLabel(d))}"${d < t ? ' disabled' : ''}>${d.getDate()}</button>`;
+    }).join('');
+    return `<div class="picker"><p class="picker__title">Оберіть дату консультації</p><p class="picker__month">${esc(months)}</p>
+      <div class="picker__week">${head}${cells}</div>
+      <div class="picker__actions"><button class="picker__back" type="button" data-picker="cancel">Скасувати</button></div></div>`;
+  }
+  if (pk.step === 'time') {
+    const slots = TIMES.map((t, i) => {
+      const busy = slotBusy(pk.date, i);
+      const past = slotPast(pk.date, t);
+      return `<button class="picker__slot${busy ? ' picker__slot--busy' : ''}" type="button" data-time="${t}"${busy || past ? ' disabled' : ''}${busy ? ' aria-label="' + t + ', зайнято"' : ''}>${t}</button>`;
+    }).join('');
+    return `<div class="picker"><p class="picker__title">Час · ${esc(dateLabel(pk.date))}</p>
+      <div class="picker__slots">${slots}</div>
+      <p class="picker__legend">Закреслені — зайняті у вашому календарі</p>
+      <div class="picker__actions"><button class="picker__back" type="button" data-picker="date">← Інша дата</button></div></div>`;
+  }
+  return `<div class="picker"><p class="picker__title">Повідомлення клієнту</p>
+    <textarea class="picker__text" aria-label="Текст пропозиції часу">${esc(pk.text)}</textarea>
+    <div class="picker__actions">
+      <button class="picker__send" type="button">Надіслати клієнту</button>
+      <button class="picker__back" type="button" data-picker="time">← Змінити час</button>
+    </div></div>`;
+}
+
+function pickDate(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  S.picker = { step: 'time', date: new Date(y, m - 1, d), time: '', text: '' };
+  renderLive();
+}
+
+function pickTime(t) {
+  S.picker.time = t;
+  S.picker.step = 'preview';
+  S.picker.text = proposalText(S.picker.date, t);
+  renderLive();
+}
+
+function sendProposal() {
+  const pk = S.picker;
+  const text = pk.text.trim() || proposalText(pk.date, pk.time);
+  const label = `${dateLabel(pk.date)} о ${pk.time}`;
+  S.proposal = { label, short: `${dayKey(pk.date).slice(8)}.${dayKey(pk.date).slice(5, 7)} ${pk.time}`, answered: false };
+  S.picker = null;
+  const keys = '<div class="msg__keyboard msg__keyboard--two"><button class="msg__key" type="button" data-answer="yes">Так, зручно</button><button class="msg__key" type="button" data-answer="no">Інший час</button></div>';
+  if (S.handoff) {
+    addMsg(clientBody, 'msg--in msg--lawyer', `<span class="msg__sign">${esc(signature())}</span>${esc(text)}${keys}<span class="msg__time">${time()}</span>`);
+    log('lawyer', text);
+  } else {
+    botSay(text, keys);
+  }
+  addMsg(lawyerBody, 'msg--out', `<span class="msg__meta">Запропоновано клієнту</span>${esc(label)}<span class="msg__time">${time()}</span>`);
+  cardNote('Запропоновано час: ' + label);
+  renderLive();
+}
+
+function answerProposal(yes, btn) {
+  const pr = S.proposal;
+  if (!pr || pr.answered) return;
+  pr.answered = true;
+  btn.closest('.msg__keyboard').querySelectorAll('.msg__key').forEach((b) => { b.disabled = true; });
+  btn.classList.add('msg__key--chosen');
+  addMsg(clientBody, 'msg--out', `${yes ? 'Так, зручно' : 'Інший час'}<span class="msg__time">${time()}</span>`);
+  log('client', yes ? 'Так, зручно' : 'Інший час');
+  if (yes) {
+    botSay(`Записала вас на консультацію: ${pr.label}.\nАдреса: ${P.city ? P.city + ', ' : ''}${P.office}. Нагадаю за день.`);
+    addMsg(lawyerBody, 'msg--in', `<span class="urgency urgency--low"></span>Клієнт підтвердив: ${esc(pr.label)}\nСправа №${SC[current].card.id}<span class="msg__time">${time()}</span>`);
+    if (S.caseRow) { S.caseRow.status = 'scheduled'; S.caseRow.appt = pr.short; }
+  } else {
+    botSay(`Передала адвокату, що вам потрібен інший час. ${g('Вона запропонує', 'Він запропонує', 'Вам запропонують')} варіанти.`);
+    addMsg(lawyerBody, 'msg--in', `Клієнту не підходить ${esc(pr.label)}, просить інший час.<span class="msg__time">${time()}</span>`);
+    S.proposal = null; // можно предложить снова
+  }
+  renderLive();
+}
+
+function chooseSlot(btn) {
+  const box = btn.closest('.msg__keyboard');
+  if (S.slotsDecided) return;
+  S.slotsDecided = true;
+  box.querySelectorAll('.msg__key').forEach((b) => { b.disabled = true; });
+  btn.classList.add('msg__key--chosen');
+  const sc = SC[current];
+  if (btn.dataset.slot === 'other') {
+    addMsg(clientBody, 'msg--out', `Інший час<span class="msg__time">${time()}</span>`);
+    log('client', 'Інший час');
+    botSay(`Передала адвокату, що вам потрібен інший час. ${g('Вона запропонує', 'Він запропонує', 'Вам запропонують')} варіанти.`);
+    addMsg(lawyerBody, 'msg--in', `Клієнт зі справи №${sc.card.id} просить інший час консультації.<span class="msg__time">${time()}</span>`);
+    renderLive();
+    return;
+  }
+  const slot = SLOTS[Number(btn.dataset.slot)];
+  addMsg(clientBody, 'msg--out', `${esc(slot)}<span class="msg__time">${time()}</span>`);
+  log('client', slot);
+  botSay(`Записала вас на консультацію: ${slot}.\nАдреса: ${P.city ? P.city + ', ' : ''}${P.office}. Нагадаю за день.`);
+  addMsg(lawyerBody, 'msg--in', `<span class="urgency urgency--low"></span>Новий запис: ${esc(slot)}\nСправа №${sc.card.id}, ${esc(sc.card.client.split(',')[0])}<span class="msg__time">${time()}</span>`);
+  if (S.caseRow) { S.caseRow.status = 'scheduled'; S.caseRow.appt = slot.replace(/^.., /, '').replace(' о ', ' '); }
+  renderLive();
+}
+
+/* --- Перерисовка живых частей -------------------------------------------- */
+
+let pickerBubble = null;
+
+function renderLive() {
+  // Телефон адвоката: окно ответа и выбор времени
+  lawyerBottom.innerHTML = S.composerOpen || S.handoff ? composerHTML(true) : `<span class="chat__input">${esc(P.person)}</span>`;
+  if (S.picker) {
+    if (!pickerBubble || !pickerBubble.isConnected) pickerBubble = addMsg(lawyerBody, 'msg--in msg--wide', '');
+    pickerBubble.innerHTML = pickerHTML();
+    scrollDown(lawyerBody);
+  } else if (pickerBubble) {
+    pickerBubble.remove();
+    pickerBubble = null;
+  }
+  cardButtons();
+  renderClientBottom();
+  // Нижние панели меняют высоту — лента чатов снова к последнему сообщению
+  scrollDown(clientBody);
+  scrollDown(lawyerBody);
+  renderPanel();
+  renderLiveCase();
+}
+
+/* --- Панель адвоката ----------------------------------------------------- */
+
+let CASES = [
+  { id: 41, title: 'Розірвання шлюбу, поділ квартири', client: 'Наталія', category: 'family', urgency: 'medium', status: 'in_progress', date: '14.10' },
+  { id: 40, title: 'ДТП, винуватець без поліса', client: 'Олег', category: 'traffic', urgency: 'medium', status: 'scheduled', date: '14.10' },
+  { id: 39, title: 'Дзвінки колекторів, кредит 30 000 грн', client: 'Світлана', category: 'debt', urgency: 'low', status: 'new', date: '13.10' },
+  { id: 38, title: 'Спадщина після батька, двоє спадкоємців', client: 'Максим', category: 'property', urgency: 'medium', status: 'in_progress', date: '12.10' },
+  { id: 37, title: 'Штраф за перевищення швидкості', client: 'Роман', category: 'administrative', urgency: 'high', status: 'scheduled', date: '11.10' },
+  { id: 36, title: 'Аліменти на дитину 5 років', client: 'Юлія', category: 'family', urgency: 'low', status: 'closed', date: '09.10' },
+  { id: 35, title: 'Невиплата зарплати за 2 місяці', client: 'Петро', category: 'labor', urgency: 'medium', status: 'rejected', date: '08.10' },
+];
+let filter = 'all';
+let openCaseId = null;
+
+const statusText = (x) => STATUS[x.status] + (x.status === 'scheduled' && x.appt ? ' · ' + x.appt : '');
+
+function renderPanel() {
+  const count = (s) => CASES.filter((x) => x.status === s).length;
+  $('stats').innerHTML = [
+    [count('new'), 'Нові'], [count('in_progress'), 'В роботі'], [count('scheduled'), 'Записані'], [CASES.length, 'За тиждень'],
+  ].map(([v, l]) => `<div class="stats__item"><div class="stats__value">${v}</div><div class="stats__label">${l}</div></div>`).join('');
+
+  $('filters').innerHTML = [['all', 'Усі'], ...Object.entries(STATUS)]
+    .map(([k, l]) => `<button class="filters__btn${filter === k ? ' filters__btn--active' : ''}" data-filter="${k}" type="button">${l}</button>`).join('');
+
+  $('cases-body').innerHTML = CASES.filter((x) => filter === 'all' || x.status === filter).map((x) => `
+    <tr class="cases__row" data-id="${x.id}">
+      <td class="cases__cell"><div class="cases__title">${esc(x.title)}</div><div class="cases__client">№${x.id} · ${esc(x.client)}</div></td>
+      <td class="cases__cell">${CATEGORY[x.category]}</td>
+      <td class="cases__cell"><span class="urgency urgency--${x.urgency}"></span>${URGENCY[x.urgency]}</td>
+      <td class="cases__cell"><span class="status${x.status === 'new' ? ' status--new' : ''}">${esc(statusText(x))}</span></td>
+      <td class="cases__cell">${x.date}</td>
+    </tr>`).join('');
+}
+
+function timelineHTML(items) {
+  const who = { bot: 'Бот', client: 'Клієнт', lawyer: signature(), system: '' };
+  return items.map((s) => `<div class="timeline__item timeline__item--${s.who}">${who[s.who] ? `<span class="timeline__who">${esc(who[s.who])}</span>` : ''}${esc(s.text)}</div>`).join('');
+}
+
+function renderCase(id) {
+  const x = CASES.find((c) => c.id === id);
+  const box = $('case');
+  openCaseId = x ? id : null;
+  if (!x) { box.hidden = true; return; }
+  const c = x.card || { summary: 'Демо-запис без повної картки.', goal: '—', deadlines: '—', documents: '—', client: x.client };
+  box.innerHTML = `
+    <h2 class="case__title">${esc(x.title)}</h2>
+    <p class="case__meta" data-mount="meta"></p>
+    <div class="case__grid">
+      <div>
+        <p class="case__label">Суть</p><p class="case__text">${esc(c.summary)}</p>
+        <p class="case__label">Мета клієнта</p><p class="case__text">${esc(c.goal)}</p>
+        <p class="case__label">Важливі строки</p><p class="case__text">${esc(c.deadlines)}</p>
+        <p class="case__label">Документи</p><p class="case__text">${esc(c.documents)}</p>
+        <p class="case__label">Клієнт</p><p class="case__text">${esc(c.client)}</p>
+        <div data-mount="tools"></div>
+      </div>
+      <div>
+        <p class="case__label">Переписка</p>
+        <div class="timeline" data-mount="timeline">${x.live ? '' : '<p class="case__text">Переписка зберігається тут, коли справа приходить від бота.</p>'}</div>
+        <div data-mount="reply"></div>
+      </div>
+    </div>`;
+  box.hidden = false;
+  renderLiveCase();
+  box.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+}
+
+// Открытая в панели живая справа: статус, переписка, «Запропонувати час», ответ клиенту
+function renderLiveCase() {
+  const box = $('case');
+  if (box.hidden || openCaseId === null) return;
+  const x = CASES.find((c) => c.id === openCaseId);
+  if (!x) return;
+  const mount = (n) => box.querySelector(`[data-mount="${n}"]`);
+  mount('meta').textContent = `№${x.id} · ${CATEGORY[x.category]} · терміновість ${URGENCY[x.urgency]} · ${statusText(x)}`;
+  if (!x.live || x !== S.caseRow) return;
+  const tl = mount('timeline');
+  tl.innerHTML = timelineHTML(LOG);
+  tl.scrollTop = tl.scrollHeight;
+  mount('tools').innerHTML = `
+    <div class="case__actions">
+      <button class="case__action" type="button" data-act="time"${S.rejected || S.proposal || S.picker ? ' disabled' : ''}>Запропонувати час</button>
+      ${S.handoff ? '<button class="case__action case__action--lawyer composer__return" type="button">Повернути боту</button>' : ''}
+    </div>
+    ${S.picker ? `<div class="case__picker">${pickerHTML()}</div>` : ''}`;
+  const reply = mount('reply');
+  const focused = reply.contains(document.activeElement);
+  if (!focused) reply.innerHTML = `<p class="case__label">Відповісти клієнту від імені бота</p>${composerHTML(false)}`;
+}
+
+function showView(name) {
+  document.querySelectorAll('.header__tab').forEach((t) => t.classList.toggle('header__tab--active', t.dataset.view === name));
+  document.querySelectorAll('.view').forEach((v) => v.classList.toggle('view--active', v.id === 'view-' + name));
+}
+
+function openPanel(id) { showView('panel'); renderCase(id); }
+
+/* --- Сценарий ------------------------------------------------------------ */
+
+function markScenario(name) {
+  document.querySelectorAll('.scenarios__btn').forEach((x) => x.classList.toggle('scenarios__btn--active', x.dataset.scenario === name));
+}
+
+const cardBtn = (act) => () => lawyerBody.querySelector(`.card-msg [data-act="${act}"]:not(:disabled)`);
+const inLawyer = (sel) => () => lawyerBody.querySelector(sel) || lawyerBottom.querySelector(sel);
+
+// Автодействия после диалога: по одному «показательному» пути на сценарий
+async function autoFinale(name, run) {
+  const step = async (target, cond) => { autoPress(target, TEMPO.choice); return waitFor(cond, run); };
+  const slots = (sel) => () => clientBody.querySelector(`.msg__keyboard [data-slot${sel}]:not(:disabled)`);
+  if (name === 'labor') {
+    // Клиенту не подошли слоты → адвокат предлагает дату и время → клиент соглашается
+    if (!S.slotsDecided && !(await step(slots('="other"'), () => S.slotsDecided))) return false;
+    if (!(await step(cardBtn('time'), () => S.picker || S.proposal))) return false;
+    const t = today0();
+    const day = pickerDays().find((d) => d > t && (d.getDay() + 6) % 7 < 5);
+    if (S.picker && S.picker.step === 'date' && day) {
+      if (!(await step(inLawyer(`.picker__day[data-date="${dayKey(day)}"]`), () => !S.picker || S.picker.step !== 'date'))) return false;
+    }
+    if (S.picker && S.picker.step === 'time') {
+      const i = TIMES.findIndex((tm, k) => tm >= '15:00' && !slotBusy(S.picker.date, k));
+      if (!(await step(inLawyer(`.picker__slot[data-time="${TIMES[i < 0 ? 0 : i]}"]`), () => !S.picker || S.picker.step !== 'time'))) return false;
+    }
+    if (S.picker && !(await step(inLawyer('.picker__send'), () => S.proposal))) return false;
+    if (!(await step(() => clientBody.querySelector('[data-answer="yes"]:not(:disabled)'), () => !S.proposal || S.proposal.answered))) return false;
+  } else if (name === 'military') {
+    // Слот → взять в работу → адвокат сам пишет клиенту → ответ → вернуть боту
+    if (!S.slotsDecided && !(await step(slots('="0"'), () => S.slotsDecided))) return false;
+    if (!S.taken && !(await step(cardBtn('take'), () => S.taken || S.rejected))) return false;
+    if (!(await step(cardBtn('write'), () => S.composerOpen || S.handoff))) return false;
+    const chip = SC.military.chips[1];
+    if (!(await step(() => lawyerBottom.querySelector('[data-chip="1"]'), () => S.draft === chip || S.lawyerSpoke))) return false;
+    if (!(await step(() => lawyerBottom.querySelector('.composer__send'), () => S.lawyerSpoke))) return false;
+    if (!(await step(() => clientBottom.querySelector('[data-reply]'), () => S.replyIdx > 0))) return false;
+    if (!(await step(() => lawyerBottom.querySelector('.composer__return'), () => !S.handoff))) return false;
+  } else if (!S.taken && !(await step(cardBtn('take'), () => S.taken || S.rejected))) {
+    return false;
+  }
+  return true;
+}
+
+async function play(name) {
+  const run = ++runId;
+  autoHook = null;
+  autoSeq++;
+  current = name;
+  markScenario(name);
+  const sc = SC[name];
+  S = freshState();
+  LOG = [];
+  clientPrompt = null;
+  pickerBubble = null;
+  clientBody.innerHTML = '';
+  lawyerBody.innerHTML = '';
+  CASES = CASES.filter((x) => !x.live);
+  if (openCaseId !== null && !CASES.some((x) => x.id === openCaseId)) { $('case').hidden = true; openCaseId = null; }
+  addMsg(clientBody, 'msg--system', 'Клієнт натиснув /start і погодився на обробку персональних даних');
+  addMsg(lawyerBody, 'msg--system', 'Чат підписано на заявки командою /lawyer');
+  renderLive();
+
+  let prevBot = null;
+  for (const step of sc.steps) {
+    // Адвокат в разговоре — бот молчит, сценарий ждёт «Повернути боту»
+    if (!(await waitFor(() => !S.handoff, run))) return;
+    if (step.from === 'user') {
+      const how = await waitForUser(step, prevBot);
+      if (run !== runId) return;
+      if (how !== 'typed') userBubble(step);
+      if (step.voice) {
+        await sleep(TEMPO.voice);
+        if (run !== runId) return;
+        addMsg(clientBody, 'msg--in', `<span class="msg__meta">Розпізнано голосове:</span>«${esc(step.text)}»<span class="msg__time">${time()}</span>`);
+      }
+      renderLiveCase();
+      continue;
+    }
+    await botTyping(step.critical ? TEMPO.botTypingCritical : TEMPO.botTyping);
+    if (run !== runId) return;
+    const slotKeys = step.slots
+      ? `<div class="msg__keyboard">${SLOTS.map((s, i) => `<button class="msg__key" type="button" data-slot="${i}">${s}</button>`).join('')}<button class="msg__key" type="button" data-slot="other">Інший час</button></div>`
+      : '';
+    botSay(step.text, slotKeys);
+    prevBot = step;
+    if (step.card) {
+      S.caseRow = { id: sc.card.id, live: true, title: sc.title, client: sc.card.client.split(',')[0], category: sc.card.category, urgency: sc.card.urgency, status: 'new', date: 'щойно', card: sc.card };
+      CASES.unshift(S.caseRow);
+      await sleep(TEMPO.card);
+      if (run !== runId) return;
+      sendCard(sc);
+    }
+    renderLive();
+  }
+
+  if (auto && !(await autoFinale(name, run))) return;
+  await autoPause(TEMPO.next);
+  if (run !== runId) return;
+  play(ORDER[(ORDER.indexOf(name) + 1) % ORDER.length]);
+}
+
+/* --- События ------------------------------------------------------------- */
+
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  const on = (sel) => t.closest(sel);
+  let b;
+  if ((b = on('.header__tab'))) return showView(b.dataset.view);
+  if ((b = on('.scenarios__btn'))) return play(b.dataset.scenario);
+  if (on('#restart')) { setAuto(true); return play(current); }
+  if (on('#auto-toggle')) return setAuto(!auto);
+  if ((b = on('[data-filter]'))) { filter = b.dataset.filter; return renderPanel(); }
+  if ((b = on('.cases__row'))) return renderCase(Number(b.dataset.id));
+  if (!S) return;
+  if ((b = on('.card-msg [data-act], .case__action[data-act]'))) {
+    if (b.dataset.act === 'panel') return openPanel(SC[current].card.id);
+    return decide(b.dataset.act);
+  }
+  if ((b = on('[data-slot]'))) return chooseSlot(b);
+  if ((b = on('[data-answer]'))) return answerProposal(b.dataset.answer === 'yes', b);
+  if ((b = on('[data-reply]'))) return clientReply();
+  if ((b = on('.composer__chip'))) {
+    S.draft = SC[current].chips[Number(b.dataset.chip)];
+    S.composerOpen = true;
+    document.querySelectorAll('.composer__input').forEach((i) => { i.value = S.draft; });
+    return;
+  }
+  if (on('.composer__return')) return returnToBot();
+  if ((b = on('.picker__day'))) return pickDate(b.dataset.date);
+  if ((b = on('.picker__slot'))) return pickTime(b.dataset.time);
+  if (on('.picker__send')) return sendProposal();
+  if ((b = on('[data-picker]'))) {
+    const to = b.dataset.picker;
+    if (to === 'cancel') S.picker = null;
+    else if (to === 'date') S.picker = { step: 'date', date: null, time: '', text: '' };
+    else S.picker.step = 'time';
+    return renderLive();
+  }
+});
+
+document.addEventListener('submit', (e) => {
+  if (!e.target.closest('.composer__form') || !S) return;
+  e.preventDefault();
+  const reply = $('case').querySelector('[data-mount="reply"]');
+  lawyerSend(S.draft);
+  if (reply) reply.innerHTML = `<p class="case__label">Відповісти клієнту від імені бота</p>${composerHTML(false)}`;
+});
+
+document.addEventListener('input', (e) => {
+  if (!S) return;
+  if (e.target.matches('.composer__input')) {
+    S.draft = e.target.value;
+    document.querySelectorAll('.composer__input').forEach((i) => { if (i !== e.target) i.value = S.draft; });
+  }
+  if (e.target.matches('.picker__text') && S.picker) S.picker.text = e.target.value;
+});
+
+/* --- Запуск -------------------------------------------------------------- */
+
+function start(data) {
+  P = profile(data);
+  SC = buildScenarios();
+  $('bot-name').textContent = `${P.bot} · секретар`;
+  $('lawyer-chat-name').textContent = `${P.bot} · заявки`;
+  document.querySelectorAll('[data-initials]').forEach((el) => { el.textContent = P.avatar; });
+  $('panel-sub').textContent = P.sub;
+  $('footer-copy').textContent = P.copy;
+  play('labor');
+}
+
+(window.demoReady || Promise.resolve(null)).then(start);
+</script>
+</body>
+</html>
