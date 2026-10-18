@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="noindex, nofollow">
+	<title>Демо сайту адвоката</title>
+	<meta name="description" content="Демонстрація майбутнього сайту адвоката.">
+	<meta name="theme-color" content="#6e2231">
+	<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+	<link rel="preload" href="fonts/oswald-700.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="preload" href="fonts/caveat-600.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="preload" href="fonts/manrope-400.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="stylesheet" href="../shared/demo.css">
+	<link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="css/style.css">
+	<script src="../shared/demo.js"></script>
+</head>
+<body>
+
+	<div class="demo-ribbon" role="note">
+		<span class="demo-ribbon__text">Демо для <span data-demo="name"></span></span>
+		<span aria-hidden="true">·</span>
+		<a class="demo-ribbon__link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a>
+	</div>
+
+	<header class="header" data-lp>
+		<div class="header__container">
+			<a href="#top" class="header__logo" aria-label="На початок сторінки">
+				<svg class="header__logo-mark" viewBox="0 0 120 120" aria-hidden="true">
+					<path d="M14 34 H106"/>
+					<path d="M24 34 L14 56 M24 34 L34 56"/>
+					<path d="M10 56 Q24 74 38 56"/>
+					<path d="M96 34 L86 56 M96 34 L106 56"/>
+					<path d="M82 56 Q96 74 110 56"/>
+					<path d="M60 20 V92"/>
+					<circle cx="60" cy="15" r="4"/>
+					<path d="M42 97 H78"/>
+				</svg>
+				<span class="header__logo-text">
+					<span class="header__logo-name" data-demo="name"></span>
+					<span class="header__logo-role">Адвокат</span>
+				</span>
+			</a>
+			<div class="header__menu menu">
+				<button type="button" data-menu class="menu__icon icon-menu" aria-label="Відкрити меню" aria-expanded="false"><span></span></button>
+				<nav class="menu__body" aria-label="Головне меню">
+					<ul class="menu__list">
+						<li class="menu__item"><a href="#top" class="menu__link menu__link--active">Головна</a></li>
+						<li class="menu__item"><a href="#services" class="menu__link">Послуги</a></li>
+						<li class="menu__item"><a href="#cta" class="menu__link">Контакти</a></li>
+					</ul>
+					<div class="menu__extra">
+						<a data-demo="phone_href" class="menu__extra-phone"><span data-demo="phone"></span></a>
+						<a href="#cta" class="btn btn--solid">Залишити заявку</a>
+					</div>
+				</nav>
+			</div>
+			<div class="header__actions">
+				<a data-demo="phone_href" class="header__phone"><span data-demo="phone"></span></a>
+				<a href="#cta" class="btn btn--ghost header__btn">Залишити заявку</a>
+			</div>
+		</div>
+	</header>
+
+	<div class="wrapper">
+		<main class="page" id="top">
+
+			<!-- ===== Первый экран ===== -->
+			<section class="hero">
+				<!-- Повторы-текстуры на фоне -->
+				<div class="words hero__words" aria-hidden="true">
+					<div class="words__row words__row--outline">Захист · Адвокат · Захист · Адвокат · Захист · Адвокат</div>
+					<div class="words__row" data-demo="name_line2" data-demo-repeat="4"></div>
+					<div class="words__row words__row--outline" data-demo="city" data-demo-repeat="5" data-demo-sep=" · "></div>
+				</div>
+				<div class="hero__container">
+					<div class="hero__content">
+						<p class="hero__label label" data-reveal>Адвокат · <span data-demo="city"></span></p>
+						<h1 class="hero__title" data-demo-long="hero__title" data-reveal>
+							<span data-demo="name_line1"></span>
+							<span class="hero__title-last" data-demo="name_line2"></span>
+						</h1>
+						<p class="hero__script" data-demo="slogan" data-reveal></p>
+						<p class="hero__slogan" data-demo="lead" data-reveal></p>
+						<div class="hero__actions" data-reveal>
+							<a href="#cta" class="btn btn--solid">Отримати консультацію</a>
+							<a data-demo="phone_href" class="btn btn--ghost">Зателефонувати</a>
+						</div>
+						<ul class="hero__facts" data-demo-if="rating" data-reveal>
+							<li class="hero__fact">
+								<span class="hero__fact-value"><span data-demo="rating"></span><span>★</span></span>
+								<span class="hero__fact-text">рейтинг у <span class="demo-source" translate="no">Google Maps</span></span>
+							</li>
+							<li class="hero__fact" data-demo-if="reviews">
+								<span class="hero__fact-value" data-demo="reviews"></span>
+								<span class="hero__fact-text">відгуків у <span class="demo-source" translate="no">Google Maps</span></span>
+							</li>
+						</ul>
+					</div>
+					<div class="hero__visual">
+						<div class="hero__photo demo-photo">
+							<svg class="demo-photo__icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M6 15h9l3-5h12l3 5h9v23H6z"/><circle cx="24" cy="26" r="8"/></svg>
+							<span class="demo-photo__text">Тут буде ваше фото</span>
+						</div>
+						<span class="hero__stamp" aria-hidden="true">адвокат <span data-demo="name_line1"></span></span>
+					</div>
+				</div>
+			</section>
+
+			<!-- ===== Послуги ===== -->
+			<section class="section services" id="services" aria-labelledby="services-title">
+				<div class="services__container">
+					<div class="section__head section__head--row">
+						<div>
+							<p class="label" data-reveal>Послуги</p>
+							<h2 class="title title--h2" id="services-title">Сфери права, <em>в яких працюю</em></h2>
+						</div>
+						<p class="services__intro" data-reveal>Оберіть напрям — і одразу залиште заявку щодо свого питання.</p>
+					</div>
+					<ul class="services__list" data-demo-list="services">
+						<li class="services__item" data-reveal>
+							<a href="#cta" class="services__row" data-service>
+								<span class="services__num" data-demo-index></span>
+								<span class="services__name" data-demo-item></span>
+								<span class="services__go" aria-hidden="true"><svg viewBox="0 0 22 10"><path d="M1 5h20M16 1l5 4-5 4"/></svg></span>
+							</a>
+						</li>
+					</ul>
+				</div>
+			</section>
+
+			<!-- ===== CTA с формой ===== -->
+			<section class="section cta" id="cta" aria-labelledby="cta-title">
+				<div class="words" aria-hidden="true">
+					<div class="words__row words__row--outline">Консультація · Захист · Консультація · Захист · Консультація</div>
+				</div>
+				<div class="cta__container">
+					<div>
+						<p class="cta__label label label--cream" data-reveal>Консультація</p>
+						<h2 class="title title--h2 cta__title" id="cta-title">Потрібна правова допомога? <em>давайте знайомитись</em></h2>
+						<p class="cta__text" data-reveal>Залиште ім'я та телефон — передзвоню, коротко з'ясую суть питання і скажу, з чого почати.</p>
+						<a data-demo="phone_href" class="cta__phone" data-reveal>
+							<span class="circled circled--cream"><span data-demo="phone"></span><svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M9 31 C 7 12, 58 4, 101 5 C 154 6, 194 13, 193 31 C 192 50, 141 57, 96 55 C 49 53, 8 47, 10 29" data-ellipse/></svg></span>
+						</a>
+						<p class="cta__hours" data-demo-if="hours" data-reveal data-demo="hours"></p>
+						<p class="cta__hours" data-demo-if="address" data-reveal data-demo="address"></p>
+					</div>
+					<div class="cta__form" data-reveal>
+						<div data-form-wrap>
+							<form class="form" data-form>
+								<p class="cta__form-title">Заявка на консультацію</p>
+								<div class="form__field">
+									<label class="form__label" for="cta-name">Ім'я *</label>
+									<input class="form__input" type="text" id="cta-name" name="name" data-required autocomplete="name">
+									<span class="form__error">Вкажіть ім'я</span>
+								</div>
+								<div class="form__field">
+									<label class="form__label" for="cta-phone">Телефон *</label>
+									<input class="form__input" type="tel" id="cta-phone" name="phone" data-required="phone" autocomplete="tel" placeholder="+38 (0__) ___-__-__">
+									<span class="form__error">Вкажіть коректний номер телефону</span>
+								</div>
+								<div class="form__field">
+									<label class="form__label" for="cta-service">Питання</label>
+									<select class="form__select" id="cta-service" name="service" data-demo-list="services">
+										<option data-demo-item></option>
+										<option value="">Оберіть напрям</option>
+									</select>
+								</div>
+								<button type="submit" class="btn btn--solid form__submit">Надіслати</button>
+								<p class="form__note">Демонстрація: дані з форми нікуди не надсилаються.</p>
+							</form>
+							<div class="form__success" data-form-success hidden>
+								<p class="form__success-title">Так заявка прийде вам у Telegram</p>
+								<p>Ім'я, телефон і питання клієнта — одним повідомленням за кілька секунд. Це демо, тому зараз нічого не надіслано.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ===== Тизер полной версии ===== -->
+			<section class="demo-teaser" aria-labelledby="demo-teaser-title">
+				<div class="demo-teaser__container">
+					<p class="demo-teaser__label">Демо-версія</p>
+					<h2 class="demo-teaser__title" id="demo-teaser-title">Це демо</h2>
+					<p class="demo-teaser__lead">У повній версії сайту:</p>
+					<ul class="demo-teaser__list">
+						<li class="demo-teaser__item">Як я працюю</li>
+						<li class="demo-teaser__item">Про адвоката</li>
+						<li class="demo-teaser__item">Переваги</li>
+						<li class="demo-teaser__item">Результати справ</li>
+						<li class="demo-teaser__item">Новини та блог</li>
+						<li class="demo-teaser__item">Питання та відповіді</li>
+						<li class="demo-teaser__item">Сторінки послуг, цін і контактів</li>
+					</ul>
+					<div class="demo-teaser__previews" aria-hidden="true">
+						<figure class="demo-teaser__preview"><img class="demo-teaser__img" src="img/teaser-1.webp" alt="" width="480" height="360" loading="lazy"></figure>
+						<figure class="demo-teaser__preview"><img class="demo-teaser__img" src="img/teaser-2.webp" alt="" width="480" height="360" loading="lazy"></figure>
+						<figure class="demo-teaser__preview"><img class="demo-teaser__img" src="img/teaser-3.webp" alt="" width="480" height="360" loading="lazy"></figure>
+					</div>
+					<a class="demo-teaser__button" href="https://webdevsergey.com/" target="_blank" rel="noopener">Обговорити повну версію</a>
+				</div>
+			</section>
+
+		</main>
+
+		<footer class="footer">
+			<div class="footer__container">
+				<div class="footer__main">
+					<div class="footer__col">
+						<div class="footer__logo">
+							<span class="footer__logo-text">
+								<span class="footer__logo-name" data-demo="name"></span>
+								<span class="footer__logo-role">Адвокат · <span data-demo="city"></span></span>
+							</span>
+						</div>
+						<p class="footer__slogan" data-demo="lead"></p>
+					</div>
+					<div class="footer__col">
+						<p class="footer__title">Контакти</p>
+						<address class="footer__contacts">
+							<a data-demo="phone_href"><span data-demo="phone"></span></a>
+							<p data-demo-if="address" data-demo="address"></p>
+							<p data-demo-if="hours" data-demo="hours"></p>
+						</address>
+					</div>
+				</div>
+				<div class="footer__bottom">
+					<p>© <span data-year>2026</span> <span data-demo="name"></span></p>
+					<p class="footer__dev">Розробка сайту — <a class="footer__dev-link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a></p>
+				</div>
+			</div>
+		</footer>
+	</div>
+
+	<!-- Нижняя панель связи (планшет и телефон) -->
+	<div class="mobile-bar" data-lp>
+		<a data-demo="phone_href" class="btn btn--solid">Зателефонувати</a>
+		<a href="#cta" class="btn btn--ghost">Заявка</a>
+	</div>
+
+	<script src="js/app.js"></script>
+</body>
+</html>

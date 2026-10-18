@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="noindex, nofollow">
+	<title>Демо сайту адвоката</title>
+	<meta name="description" content="Демонстрація майбутнього сайту адвоката.">
+	<meta name="theme-color" content="#0e0f12">
+	<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="../shared/demo.css">
+	<link rel="stylesheet" href="css/style.css">
+	<script src="../shared/demo.js"></script>
+</head>
+<body>
+
+	<div class="demo-ribbon" role="note">
+		<span class="demo-ribbon__text">Демо для <span data-demo="name"></span></span>
+		<span aria-hidden="true">·</span>
+		<a class="demo-ribbon__link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a>
+	</div>
+
+	<!-- ШАПКА -->
+	<header class="header" id="header">
+		<div class="header__container">
+			<a class="header__brand" href="#top">
+				<svg class="header__seal" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+					<rect x="6" y="6" width="88" height="88" stroke="#C6A15B" stroke-width="1.4"/>
+					<path d="M50 24v46M37 70h26" stroke="#C6A15B" stroke-width="1.6" stroke-linecap="round"/>
+					<path d="M33 38h34" stroke="#C6A15B" stroke-width="1.6" stroke-linecap="round"/>
+					<path d="M33 38l-4.6 9.2a4.6 4.6 0 0 0 9.2 0z" stroke="#E3CFA0" stroke-width="1.3"/>
+					<path d="M67 38l-4.6 9.2a4.6 4.6 0 0 0 9.2 0z" stroke="#E3CFA0" stroke-width="1.3"/>
+					<circle cx="50" cy="32" r="2.6" fill="#6E1423" stroke="#C6A15B" stroke-width="1"/>
+				</svg>
+				<span class="header__brand-text">
+					<b class="header__brand-name" data-demo="name_line2"></b>
+					<span class="header__brand-sub">Адвокат — <span data-demo="city"></span></span>
+				</span>
+			</a>
+			<nav class="menu" id="menu" aria-label="Меню">
+				<a class="menu__link" href="#services">Послуги</a>
+				<a class="menu__link" href="#contact">Контакти</a>
+				<a class="menu__button button button--solid" href="#contact">Консультація</a>
+			</nav>
+			<div class="header__actions">
+				<a class="header__phone" data-demo="phone_href"><span data-demo="phone"></span></a>
+				<a class="button" href="#contact">Консультація</a>
+				<button class="burger" id="burger" type="button" aria-label="Меню" aria-controls="menu" aria-expanded="false">
+					<span class="burger__line"></span><span class="burger__line"></span><span class="burger__line"></span>
+				</button>
+			</div>
+		</div>
+	</header>
+	<div class="backdrop" id="backdrop"></div>
+
+	<main>
+
+		<!-- ПЕРШИЙ ЕКРАН -->
+		<section class="hero" id="top">
+			<div class="hero__rail" data-demo-if="address"><span data-demo="address"></span></div>
+			<div class="hero__container hero__grid">
+				<div class="hero__main">
+					<span class="eyebrow">Адвокат · <span data-demo="city"></span></span>
+					<h1 class="hero__title" data-demo-long="hero__title">
+						<span class="hero__title-line" data-demo="name_line1"></span>
+						<span class="hero__title-line hero__title-line--accent" data-demo="name_line2"></span>
+						<span class="hero__title-tag" data-demo="city"></span>
+					</h1>
+					<p class="hero__question" data-demo="slogan"></p>
+					<p class="hero__sub" data-demo="lead"></p>
+					<div class="hero__actions">
+						<a href="#contact" class="button button--solid">Залишити заявку</a>
+						<a data-demo="phone_href" class="button">Зателефонувати</a>
+					</div>
+				</div>
+				<div class="hero__media">
+					<div class="hero__frame">
+						<div class="hero__photo demo-photo">
+							<svg class="demo-photo__icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M6 15h9l3-5h12l3 5h9v23H6z"/><circle cx="24" cy="26" r="8"/></svg>
+							<span class="demo-photo__text">Тут буде ваше фото</span>
+						</div>
+						<div class="hero__badge" data-demo-if="rating">
+							<b class="hero__badge-value" data-demo="rating"></b>
+							<span class="hero__badge-text">з 5 · <span class="demo-source" translate="no">Google Maps</span></span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="hero__container">
+				<div class="hero__stats">
+					<div class="hero__stat" data-demo-if="rating">
+						<div class="hero__stat-value" data-demo="rating"></div>
+						<div class="hero__stat-label">рейтинг у <span class="demo-source" translate="no">Google Maps</span></div>
+					</div>
+					<div class="hero__stat" data-demo-if="reviews">
+						<div class="hero__stat-value" data-demo="reviews"></div>
+						<div class="hero__stat-label">відгуків клієнтів</div>
+					</div>
+					<div class="hero__stat">
+						<div class="hero__stat-value" data-demo="city"></div>
+						<div class="hero__stat-label">місто роботи</div>
+					</div>
+					<div class="hero__stat" data-demo-if="hours">
+						<div class="hero__stat-value hero__stat-value--small" data-demo="hours"></div>
+						<div class="hero__stat-label">графік</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ПОСЛУГИ -->
+		<section class="section services" id="services">
+			<div class="services__container">
+				<div class="section-head reveal">
+					<div class="section-head__ghost" aria-hidden="true">01</div>
+					<span class="section-head__tab"><b class="section-head__tab-num">01</b> Напрями роботи</span>
+					<h2 class="section-head__title">Юридичні <em class="section-head__accent">послуги</em></h2>
+					<p class="section-head__lead">Напрями правової допомоги. Натисніть на рядок — і залиште заявку саме з цього питання.</p>
+				</div>
+				<ul class="services__list reveal" data-demo-list="services">
+					<li class="services__item">
+						<a class="services__link" href="#contact" data-service>
+							<span class="services__index" data-demo-index></span>
+							<h3 class="services__title" data-demo-item></h3>
+							<span class="services__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+						</a>
+					</li>
+				</ul>
+			</div>
+		</section>
+
+		<!-- КОНТАКТИ -->
+		<section class="section contact" id="contact">
+			<div class="contact__container">
+				<div class="section-head reveal">
+					<div class="section-head__ghost" aria-hidden="true">02</div>
+					<span class="section-head__tab"><b class="section-head__tab-num">02</b> Залиште заявку</span>
+					<h2 class="section-head__title">Зв'язатися <em class="section-head__accent">з адвокатом</em></h2>
+				</div>
+				<div class="contact__grid">
+					<div class="reveal">
+						<div class="contact__block">
+							<h3 class="contact__label">Телефон</h3>
+							<a class="contact__phone" data-demo="phone_href"><span data-demo="phone"></span></a>
+						</div>
+						<div class="contact__block" data-demo-if="address">
+							<h3 class="contact__label">Адреса</h3>
+							<p class="contact__text" data-demo="address"></p>
+						</div>
+						<div class="contact__block" data-demo-if="hours">
+							<h3 class="contact__label">Графік</h3>
+							<p class="contact__text" data-demo="hours"></p>
+						</div>
+						<div class="contact__block" data-demo-if="rating">
+							<h3 class="contact__label">Оцінка клієнтів</h3>
+							<p class="contact__text"><span data-demo="rating"></span> з 5<span data-demo-if="reviews"> · <span data-demo="reviews"></span> відгуків</span> · <span class="demo-source" translate="no">Google Maps</span></p>
+						</div>
+					</div>
+
+					<div class="form-card reveal reveal--d1" id="leadCard">
+						<form class="form-card__fields" id="leadForm" novalidate>
+							<h3 class="form-card__title">Заявка на консультацію</h3>
+							<p class="form-card__sub">Залиште ім'я та номер — передзвоню в робочий час, коротко з'ясую суть питання і скажу, чи потрібна зустріч.</p>
+							<div class="field">
+								<label class="field__label" for="f-name">Ваше ім'я</label>
+								<input class="field__input" id="f-name" name="name" type="text" placeholder="Ім'я" autocomplete="name" required>
+							</div>
+							<div class="field">
+								<label class="field__label" for="f-phone">Телефон</label>
+								<input class="field__input" id="f-phone" name="phone" type="tel" placeholder="+38 0__ ___ __ __" autocomplete="tel" required>
+							</div>
+							<div class="field">
+								<label class="field__label" for="f-service">Питання</label>
+								<select class="field__input field__input--select" id="f-service" name="service" data-demo-list="services">
+									<option data-demo-item></option>
+									<option value="">Оберіть напрям</option>
+								</select>
+							</div>
+							<div class="field">
+								<label class="field__label" for="f-msg">Коротко про ситуацію</label>
+								<textarea class="field__input field__input--area" id="f-msg" name="message" placeholder="Кілька слів"></textarea>
+							</div>
+							<button class="button button--solid form-card__submit" type="submit">Надіслати заявку</button>
+							<p class="form-card__hint">Демонстрація: дані з форми нікуди не надсилаються</p>
+						</form>
+						<div class="form-card__state" role="status">
+							<div class="form-card__ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg></div>
+							<h4 class="form-card__state-title">Так заявка прийде вам у Telegram</h4>
+							<p class="form-card__state-text">Ім'я, телефон і питання клієнта — одним повідомленням за кілька секунд. Це демо, тому зараз нічого не надіслано.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ТИЗЕР ПОВНОЇ ВЕРСІЇ -->
+		<section class="demo-teaser" aria-labelledby="demo-teaser-title">
+			<div class="demo-teaser__container">
+				<p class="demo-teaser__label">Демо-версія</p>
+				<h2 class="demo-teaser__title" id="demo-teaser-title">Це демо</h2>
+				<p class="demo-teaser__lead">У повній версії сайту:</p>
+				<ul class="demo-teaser__list">
+					<li class="demo-teaser__item">Про адвоката</li>
+					<li class="demo-teaser__item">Як я працюю</li>
+					<li class="demo-teaser__item">Документи адвоката</li>
+					<li class="demo-teaser__item">Ціни та умови</li>
+					<li class="demo-teaser__item">Відгуки</li>
+					<li class="demo-teaser__item">Питання та відповіді</li>
+					<li class="demo-teaser__item">Карта проїзду</li>
+				</ul>
+				<div class="demo-teaser__previews" aria-hidden="true">
+					<figure class="demo-teaser__preview"><img class="demo-teaser__img" src="img/teaser-1.webp" alt="" width="480" height="360" loading="lazy"></figure>
+					<figure class="demo-teaser__preview"><img class="demo-teaser__img" src="img/teaser-2.webp" alt="" width="480" height="360" loading="lazy"></figure>
+					<figure class="demo-teaser__preview"><img class="demo-teaser__img" src="img/teaser-3.webp" alt="" width="480" height="360" loading="lazy"></figure>
+				</div>
+				<a class="demo-teaser__button" href="https://webdevsergey.com/" target="_blank" rel="noopener">Обговорити повну версію</a>
+			</div>
+		</section>
+
+	</main>
+
+	<!-- ПІДВАЛ -->
+	<footer class="footer">
+		<div class="footer__container">
+			<div class="footer__brand"><span data-demo="name"></span><span class="footer__brand-sub" data-demo="city"></span></div>
+			<div class="footer__meta">
+				<span>Матеріали сайту мають інформаційний характер і не є правовою консультацією та публічною офертою</span>
+				<span>© <span data-year></span> · <span data-demo="name"></span></span>
+				<p class="footer__dev">Розробка сайту — <a class="footer__dev-link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a></p>
+			</div>
+		</div>
+	</footer>
+
+	<a class="float-cta" href="#contact" aria-label="Залишити заявку">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+	</a>
+
+	<script src="js/main.js"></script>
+</body>
+</html>

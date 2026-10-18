@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="uk" data-demo-title="заявки в Telegram">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="noindex, nofollow">
+	<title>Як заявки приходитимуть вам у Telegram — демо</title>
+	<meta name="description" content="Демонстрація: заявка з сайту, картка в Telegram, автовідповідь клієнту і запис у календар.">
+	<meta name="theme-color" content="#1f5a48">
+	<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="../shared/demo.css">
+	<link rel="stylesheet" href="../shared/scene.css">
+	<link rel="stylesheet" href="css/style.css">
+	<script src="../shared/demo.js"></script>
+	<script src="../shared/scene.js" defer></script>
+	<script src="js/main.js" defer></script>
+</head>
+<body>
+
+	<div class="demo-ribbon" role="note">
+		<span class="demo-ribbon__text">Демо для <span data-demo="name"></span></span>
+		<span aria-hidden="true">·</span>
+		<a class="demo-ribbon__link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a>
+	</div>
+
+	<div class="wrapper">
+		<main class="wrapper__main">
+
+			<section class="hero">
+				<div class="hero__container">
+					<p class="hero__label"><span data-demo="niche_word"></span><span aria-hidden="true">·</span><span data-demo="city"></span></p>
+					<h1 class="hero__title">Як заявки приходитимуть вам у&nbsp;<span translate="no">Telegram</span></h1>
+					<p class="hero__lead">
+						Ваш <span data-demo="niche_client"></span> пише ввечері, коли вам не до телефону. Заявка не губиться:
+						<span class="hero__name" data-demo="name"></span> бачить її у <span translate="no">Telegram</span>, а людина одразу отримує відповідь — на сайті й листом.
+					</p>
+					<ol class="hero__steps">
+						<li class="hero__step"><a class="hero__step-link" href="#player-title"><span class="hero__step-num">1</span>Форма</a></li>
+						<li class="hero__step"><a class="hero__step-link" href="#player-title"><span class="hero__step-num">2</span><span translate="no">Telegram</span></a></li>
+						<li class="hero__step"><a class="hero__step-link" href="#player-title"><span class="hero__step-num">3</span>Відповідь клієнту</a></li>
+						<li class="hero__step"><a class="hero__step-link" href="#player-title"><span class="hero__step-num">4</span>Календар</a></li>
+					</ol>
+				</div>
+			</section>
+
+			<section class="player" aria-labelledby="player-title" data-player>
+				<div class="player__container">
+					<h2 class="player__title" id="player-title">Одна заявка — від форми до запису</h2>
+
+					<div class="player__body">
+						<ol class="player__steps">
+							<li class="player__step">
+								<button type="button" class="player__step-button" data-step="0">
+									<span class="player__step-num">1</span>
+									<span class="player__step-text">
+										<span class="player__step-title">Клієнт залишає заявку</span>
+										<span class="player__step-lead">Вечір, 21:47. Форма на сайті: «Опишіть вашу ситуацію».</span>
+									</span>
+									<span class="player__step-bar" aria-hidden="true"></span>
+								</button>
+							</li>
+							<li class="player__step">
+								<button type="button" class="player__step-button" data-step="1">
+									<span class="player__step-num">2</span>
+									<span class="player__step-text">
+										<span class="player__step-title">Вам приходить картка</span>
+										<span class="player__step-lead">Ім'я, телефон, тип справи і коли зручно — одним повідомленням у ваш <span translate="no">Telegram</span>.</span>
+									</span>
+									<span class="player__step-bar" aria-hidden="true"></span>
+								</button>
+							</li>
+							<li class="player__step">
+								<button type="button" class="player__step-button" data-step="2">
+									<span class="player__step-num">3</span>
+									<span class="player__step-text">
+										<span class="player__step-title">Клієнт одразу отримує відповідь</span>
+										<span class="player__step-lead">На сайті — щойно надіслав, і листом на пошту. Пише вашому <span translate="no">Telegram</span>-боту — бот відповідає сам.</span>
+									</span>
+									<span class="player__step-bar" aria-hidden="true"></span>
+								</button>
+							</li>
+							<li class="player__step">
+								<button type="button" class="player__step-button" data-step="3">
+									<span class="player__step-num">4</span>
+									<span class="player__step-text">
+										<span class="player__step-title">Запис і нагадування</span>
+										<span class="player__step-lead">Онлайн-запис у календар (Google Календар чи Cal.com), а клієнту за день — лист-нагадування.</span>
+									</span>
+									<span class="player__step-bar" aria-hidden="true"></span>
+								</button>
+							</li>
+						</ol>
+
+						<p class="player__caption" data-caption aria-hidden="true"></p>
+
+						<div class="player__stage" aria-live="polite">
+
+							<!-- Сцена 1: форма заявки -->
+							<div class="player__scene" data-scene="0" data-duration="9000">
+								<span class="player__who">Клієнт · сайт</span>
+								<div class="lead-form">
+									<div class="lead-form__bar" aria-hidden="true">
+										<span class="lead-form__dot"></span><span class="lead-form__dot"></span><span class="lead-form__dot"></span>
+										<span class="lead-form__clock">21:47</span>
+									</div>
+									<div class="lead-form__body">
+										<p class="lead-form__title">Опишіть вашу ситуацію</p>
+										<p class="lead-form__sub">Відповімо, щойно зможемо</p>
+										<span class="lead-form__label">Ім'я</span>
+										<span class="lead-form__field" data-type="Марина" data-type-at="500"></span>
+										<span class="lead-form__label">Телефон</span>
+										<span class="lead-form__field" data-type="067 000 00 00" data-type-at="1300"></span>
+										<span class="lead-form__label">Email (необов'язково)</span>
+										<span class="lead-form__field" data-type="maryna@example.com" data-type-at="2200"></span>
+										<span class="lead-form__label">Ситуація</span>
+										<span class="lead-form__field lead-form__field--area" data-type="Потрібна консультація. Зручно завтра після 12:00." data-type-at="3300"></span>
+										<span class="lead-form__button reveal reveal--press" data-delay="6000">Надіслати</span>
+										<span class="lead-form__sent reveal" data-delay="6600">Дякуємо! <span data-demo="name"></span> зв'яжеться завтра до 10:00.</span>
+									</div>
+								</div>
+							</div>
+
+							<!-- Сцена 2: картка заявки в Telegram -->
+							<div class="player__scene" data-scene="1" data-duration="6000">
+								<span class="player__who"><span data-demo="name"></span> · <span translate="no">Telegram</span></span>
+								<div class="phone phone--compact">
+									<div class="phone__screen">
+										<div class="phone__status" aria-hidden="true"><span>21:47</span><span>●●● ▮</span></div>
+										<div class="chat">
+											<div class="chat__head">
+												<span class="chat__avatar chat__avatar--bot" aria-hidden="true">Б</span>
+												<span class="chat__who">
+													<span class="chat__name">Бот заявок</span>
+													<span class="chat__state">бот</span>
+												</span>
+											</div>
+											<div class="chat__body">
+												<div class="chat__bubble lead-card reveal" data-delay="400">
+													<span class="lead-card__title">Нова заявка з сайту</span>
+													<dl class="lead-card__list">
+														<dt class="lead-card__key">Ім'я</dt><dd class="lead-card__value">Марина</dd>
+														<dt class="lead-card__key">Телефон</dt><dd class="lead-card__value">067 000 00 00</dd>
+														<dt class="lead-card__key">Email</dt><dd class="lead-card__value">maryna@example.com</dd>
+														<dt class="lead-card__key">Тип справи</dt><dd class="lead-card__value">консультація</dd>
+														<dt class="lead-card__key">Коли зручно</dt><dd class="lead-card__value">завтра після 12:00</dd>
+													</dl>
+													<span class="lead-card__text">«Потрібна консультація. Зручно завтра після 12:00.»</span>
+													<span class="chat__time">21:47</span>
+												</div>
+												<div class="lead-card__actions reveal" data-delay="1400">
+													<span class="lead-card__action">Передзвонити</span>
+													<span class="lead-card__action">Записати</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- Сцена 3: відповідь клієнту листом (на сайті — вже у сцені 1) -->
+							<div class="player__scene" data-scene="2" data-duration="6000">
+								<span class="player__who">Клієнт · пошта</span>
+								<div class="mail">
+									<div class="mail__head">
+										<span class="mail__box">Вхідні</span>
+										<span class="mail__count reveal" data-delay="400">1 новий</span>
+									</div>
+									<div class="mail__letter reveal" data-delay="700">
+										<span class="mail__avatar" data-initials aria-hidden="true"></span>
+										<div class="mail__content">
+											<span class="mail__from" data-demo="name"></span>
+											<span class="mail__subject">Отримали ваше звернення</span>
+											<p class="mail__text">
+												Дякуємо, Марино! Отримали ваше звернення, <span data-demo="name"></span> зв'яжеться завтра до 10:00.
+											</p>
+										</div>
+										<span class="mail__time">21:47</span>
+									</div>
+									<p class="mail__note reveal" data-delay="2000">
+										Пише вашому <span translate="no">Telegram</span>-боту? Тоді бот відповідає сам — у тому ж чаті.
+									</p>
+								</div>
+							</div>
+
+							<!-- Сцена 4: календар і нагадування -->
+							<div class="player__scene" data-scene="3" data-duration="6500">
+								<span class="player__who"><span data-demo="name"></span> · календар</span>
+								<div class="cal">
+									<div class="cal__head">
+										<span class="cal__day">Завтра</span>
+										<span class="cal__date">записів: 1</span>
+									</div>
+									<ul class="cal__grid">
+										<li class="cal__row"><span class="cal__hour">11:00</span></li>
+										<li class="cal__row"><span class="cal__hour">12:00</span></li>
+										<li class="cal__row"><span class="cal__hour">13:00</span></li>
+										<li class="cal__row"><span class="cal__hour">14:00</span>
+											<span class="cal__event reveal" data-delay="500">
+												<span class="cal__event-title">Консультація · Марина</span>
+												<span class="cal__event-time">14:00–15:00 · 067 000 00 00</span>
+											</span>
+										</li>
+										<li class="cal__row"><span class="cal__hour">15:00</span></li>
+										<li class="cal__row"><span class="cal__hour">16:00</span></li>
+									</ul>
+									<div class="cal__toast reveal" data-delay="2000">
+										<span class="cal__toast-label">Лист-нагадування клієнту за день</span>
+										<span class="cal__toast-text">«Нагадуємо: завтра о 14:00 консультація. До зустрічі! — <span data-demo="name"></span>»</span>
+									</div>
+								</div>
+							</div>
+
+						</div>
+					</div>
+
+					<div class="player__controls">
+						<button type="button" class="player__replay" data-replay>
+							<svg class="player__replay-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v5h5"/></svg>
+							Програти ще раз
+						</button>
+					</div>
+				</div>
+			</section>
+
+			<section class="auto" aria-labelledby="auto-title">
+				<div class="auto__container">
+					<h2 class="auto__title" id="auto-title">Що змінюється для вас</h2>
+					<p class="auto__lead">Ви не сидите на телефоні ввечері, а людина не йде до того, хто відповів першим.</p>
+					<ol class="auto__list">
+						<li class="auto__item">
+							<span class="auto__when">Жодна заявка не губиться</span>
+							<p class="auto__text">Усі звернення з форми сайту — в одному чаті <span translate="no">Telegram</span>.</p>
+						</li>
+						<li class="auto__item">
+							<span class="auto__when">Відповідь за секунду</span>
+							<p class="auto__text">На сайті й листом — навіть уночі людина знає, коли ви зв'яжетеся.</p>
+						</li>
+						<li class="auto__item">
+							<span class="auto__when">Менше пропущених зустрічей</span>
+							<p class="auto__text">Лист-нагадування за день надходить клієнту сам.</p>
+						</li>
+					</ol>
+				</div>
+			</section>
+
+			<section class="cta" aria-labelledby="cta-title">
+				<div class="cta__container">
+					<h2 class="cta__title" id="cta-title">Налаштую так само для вас</h2>
+					<p class="cta__lead">Форма на сайті, бот у <span translate="no">Telegram</span>, лист-відповідь і онлайн-запис з нагадуванням — без платних сервісів, під ваш графік.</p>
+					<a class="cta__button" href="https://webdevsergey.com/" target="_blank" rel="noopener">
+						Налаштувати для вас
+						<svg class="cta__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+					</a>
+				</div>
+			</section>
+
+		</main>
+
+		<footer class="footer">
+			<div class="footer__container">
+				<p class="footer__copy">Демо для <span data-demo="name"></span>, <span data-demo="city"></span></p>
+				<p class="footer__dev">Розробка сайту — <a class="footer__dev-link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a></p>
+			</div>
+		</footer>
+	</div>
+
+</body>
+</html>

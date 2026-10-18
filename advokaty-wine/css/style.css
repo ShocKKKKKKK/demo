@@ -1,0 +1,1593 @@
+/* ============================================================
+   Демо-основа «Editorial Wine» (премиум, адвокат-женщина)
+   Винный бордо, крем, Oswald + Caveat. Адаптив: clamp (fls), desktop-first.
+   Оставлены только первый экран, «Послуги», CTA-форма и подвал.
+   ============================================================ */
+
+/* ---------- Fonts ---------- */
+
+@font-face {
+	font-family: 'Oswald';
+	src: url('../fonts/oswald-500.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Oswald';
+	src: url('../fonts/oswald-600.woff2') format('woff2');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Oswald';
+	src: url('../fonts/oswald-700.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Cormorant';
+	src: url('../fonts/cormorant-700.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Caveat';
+	src: url('../fonts/caveat-600.woff2') format('woff2');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	src: url('../fonts/manrope-400.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	src: url('../fonts/manrope-500.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* ---------- Variables ---------- */
+
+:root {
+	/* "Editorial Wine" palette */
+	--color-bg: #f5f1e8;
+	--color-surface: #fbf8f1;
+	--color-ink: #241d1a;
+	--color-ink-muted: #6b5f57;
+	--color-wine: #6e2231;
+	--color-wine-dark: #521523;
+	--color-brown: #7b5847;
+	--color-red: #b83226;
+	--color-line: #e2d9c8;
+	--color-cream: #f2e7d8;
+	--color-cream-muted: rgba(242, 231, 216, 0.65);
+
+	/* fonts */
+	--font-display: 'Oswald', 'Arial Narrow', sans-serif;
+	--font-serif: 'Cormorant', Georgia, serif;
+	--font-script: 'Caveat', cursive;
+	--font-sans: 'Manrope', Arial, sans-serif;
+
+	/* sizes */
+	--container-width: 1240px;
+	--container-padding: 20px;
+	--height-header: 84px;
+	--section-indent: clamp(64px, 49.231px + 4.1026vw, 128px);
+
+	/* z-index scale */
+	--z-header: 100;
+	--z-above: 2;
+	--z-base: 1;
+	--z-below: -1;
+}
+
+/* ---------- Base ---------- */
+
+body {
+	min-width: 320px;
+	font-family: var(--font-sans);
+	font-weight: 400;
+	font-size: clamp(16px, 15.538px + 0.1282vw, 18px);
+	line-height: 1.65;
+	color: var(--color-ink);
+	background-color: var(--color-bg);
+}
+
+.wrapper {
+	/* 100svh instead of a height:100% chain: the wrapper sits inside #smooth-wrapper */
+	min-height: 100svh;
+	display: flex;
+	flex-direction: column;
+	overflow: clip;
+}
+
+.wrapper > main {
+	flex: 1 1 auto;
+}
+
+.wrapper > * {
+	min-width: 0;
+}
+
+/* Fixed header compensation */
+
+.page {
+	padding-top: var(--height-header);
+}
+
+/* Container: shared by all sections */
+
+[class*='__container'] {
+	max-width: calc(var(--container-width) + var(--container-padding) * 2);
+	margin: 0 auto;
+	padding-left: var(--container-padding);
+	padding-right: var(--container-padding);
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+/* ---------- Typography ---------- */
+
+.title {
+	font-family: var(--font-display);
+	font-weight: 600;
+	/* NOT below 1.14: the breve over "Й" extends upward — with line-height ~1 it overlaps the line above */
+	line-height: 1.14;
+	text-transform: uppercase;
+	/* Uppercase Oswald is tight — letters "stick together" without letter-spacing */
+	letter-spacing: 0.035em;
+	text-wrap: balance;
+}
+
+.title--h1 {
+	font-size: clamp(38px, 27.846px + 2.8205vw, 82px);
+	font-weight: 700;
+	line-height: 1.1;
+}
+
+.title--h2 {
+	font-size: clamp(30px, 23.077px + 1.9231vw, 60px);
+}
+
+.title--h3 {
+	font-size: clamp(20px, 18.615px + 0.3846vw, 26px);
+	letter-spacing: 0.03em;
+}
+
+/* Script accent inside a heading: handwritten, lowercase, wine */
+
+.title em {
+	display: block;
+	font-family: var(--font-script);
+	font-style: normal;
+	font-weight: 600;
+	text-transform: none;
+	letter-spacing: 0;
+	/* no smaller than 23px — the script font is thin and must stay readable on mobile */
+	font-size: max(0.62em, 23px);
+	line-height: 1.2;
+	color: var(--color-wine);
+	/* breathing room between caps and the script line: at least 14px at any width */
+	margin-top: max(0.28em, 14px);
+}
+
+/* On a wine background the script is cream */
+
+.cta .title em,
+.title--on-wine em {
+	color: var(--color-cream);
+}
+
+/* Красное слово внутри фразы */
+
+.mark-red {
+	color: var(--color-red);
+}
+
+/* Label: letter-spaced serif caps, like "ВАШ АДВОКАТ" */
+
+.label {
+	display: inline-flex;
+	align-items: center;
+	gap: 14px;
+	font-family: var(--font-serif);
+	font-weight: 700;
+	font-size: 15px;
+	letter-spacing: 0.3em;
+	text-transform: uppercase;
+	color: var(--color-wine);
+	line-height: 1.3;
+}
+
+.label::before {
+	content: '';
+	width: 34px;
+	height: 1px;
+	background-color: var(--color-wine);
+	flex-shrink: 0;
+}
+
+.label--plain::before {
+	display: none;
+}
+
+.label--cream {
+	color: var(--color-cream);
+}
+
+.label--cream::before {
+	background-color: var(--color-cream);
+}
+
+.text-muted {
+	color: var(--color-ink-muted);
+}
+
+/* Repeated-text textures: rows of one word, fill/outline */
+
+.words {
+	position: absolute;
+	inset: 0;
+	overflow: clip;
+	pointer-events: none;
+	-webkit-user-select: none;
+	user-select: none;
+	display: grid;
+	align-content: center;
+	z-index: 0;
+}
+
+.words__row {
+	font-family: var(--font-display);
+	font-weight: 700;
+	text-transform: uppercase;
+	white-space: nowrap;
+	line-height: 1.06;
+	font-size: clamp(48px, 31.385px + 4.6154vw, 120px);
+	letter-spacing: 0.02em;
+	color: rgba(36, 29, 26, 0.05);
+}
+
+.words__row--outline {
+	color: transparent;
+	-webkit-text-stroke: 1px rgba(110, 34, 49, 0.16);
+}
+
+.words__row--wine {
+	color: rgba(110, 34, 49, 0.07);
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	padding: 17px 32px;
+	font-family: var(--font-display);
+	font-weight: 500;
+	font-size: 15px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	line-height: 1.2;
+	text-align: center;
+	transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.btn--solid {
+	background-color: var(--color-wine);
+	color: var(--color-cream);
+}
+
+.btn--ghost {
+	border: 1px solid var(--color-ink);
+	color: var(--color-ink);
+}
+
+.btn--brass {
+	/* legacy class name; now the red accent button */
+	background-color: var(--color-red);
+	color: #fff;
+}
+
+.btn--light {
+	border: 1px solid rgba(242, 231, 216, 0.4);
+	color: var(--color-cream);
+}
+
+@media (any-hover: hover) {
+.btn--solid:hover {
+		background-color: var(--color-wine-dark);
+	}
+
+.btn--ghost:hover {
+		border-color: var(--color-wine);
+		color: var(--color-wine);
+	}
+
+.btn--brass:hover {
+		background-color: #9c2a20;
+	}
+
+.btn--light:hover {
+		border-color: var(--color-cream);
+		background-color: var(--color-cream);
+		color: var(--color-wine);
+	}
+}
+
+/* Hand-drawn circle (SVG ellipse over a word) */
+
+.circled {
+	position: relative;
+	display: inline-block;
+}
+
+.circled svg {
+	position: absolute;
+	inset: -0.32em -0.55em;
+	width: calc(100% + 1.1em);
+	height: calc(100% + 0.64em);
+	fill: none;
+	stroke: var(--color-red);
+	stroke-width: 2.6;
+	pointer-events: none;
+}
+
+.circled--cream svg {
+	stroke: var(--color-cream);
+}
+
+/* ---------- Header ---------- */
+
+/* Fixed (outside the ScrollSmoother wrapper) */
+
+.header {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: var(--z-header);
+	background-color: color-mix(in srgb, var(--color-bg) 94%, transparent);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
+	border-bottom: 1px solid var(--color-line);
+}
+
+.header__container {
+	display: flex;
+	align-items: center;
+	gap: clamp(20px, 8px + 1.5vw, 40px);
+	min-height: var(--height-header);
+}
+
+.header__logo {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-shrink: 0;
+	position: relative;
+	z-index: 5;
+}
+
+.header__logo-text {
+	display: grid;
+	line-height: 1.2;
+}
+
+.header__logo-name {
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: 16px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.header__logo-role {
+	font-family: var(--font-serif);
+	font-weight: 700;
+	font-size: 11px;
+	letter-spacing: 0.3em;
+	text-transform: uppercase;
+	color: var(--color-wine);
+}
+
+.header__menu {
+	flex: 1 1 auto;
+}
+
+.header__actions {
+	display: flex;
+	align-items: center;
+	gap: 22px;
+	flex-shrink: 0;
+}
+
+.header__phone {
+	font-family: var(--font-display);
+	font-weight: 500;
+	font-size: 15px;
+	letter-spacing: 0.04em;
+	white-space: nowrap;
+	transition: color 0.3s;
+}
+
+@media (any-hover: hover) {
+.header__phone:hover {
+		color: var(--color-wine);
+	}
+}
+
+.header__btn {
+	padding: 12px 22px;
+	font-size: 13px;
+}
+
+/* Menu */
+
+.menu__list {
+	display: flex;
+	justify-content: center;
+	gap: clamp(14px, 2px + 1.2vw, 28px);
+}
+
+.menu__link {
+	font-weight: 500;
+	font-size: 13px;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	white-space: nowrap;
+	line-height: 1.3;
+	padding: 4px 0;
+	position: relative;
+	transition: color 0.3s;
+}
+
+.menu__link::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 2px;
+	background-color: var(--color-red);
+	scale: 0 1;
+	transform-origin: left;
+	transition: scale 0.3s;
+}
+
+.menu__link--active {
+	color: var(--color-wine);
+}
+
+.menu__link--active::after {
+	scale: 1 1;
+}
+
+@media (any-hover: hover) {
+.menu__link:hover {
+		color: var(--color-wine);
+	}
+
+.menu__link:hover::after {
+		scale: 1 1;
+	}
+}
+
+/* Burger icon */
+
+.icon-menu {
+	display: none;
+}
+
+/* Phone and button inside the menu — mobile panel only */
+
+.menu__extra {
+	display: none;
+}
+
+/* ---------- Sections: shared ---------- */
+
+.section {
+	padding-top: var(--section-indent);
+	padding-bottom: var(--section-indent);
+}
+
+.section__head {
+	display: grid;
+	gap: 18px;
+	margin-bottom: clamp(36px, 27.692px + 2.3077vw, 72px);
+}
+
+.section__head--row {
+	grid-template-columns: 1fr auto;
+	align-items: end;
+}
+
+/* "label → heading" spacing via an adjacent-sibling rule (not hacks on children) */
+
+.label + .title {
+	margin-top: clamp(12px, 9px + 0.5vw, 18px);
+}
+
+.hero__label + .hero__title {
+	margin-top: clamp(20px, 12px + 1.2vw, 34px);
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+	position: relative;
+	border-bottom: 1px solid var(--color-line);
+	overflow: clip;
+}
+
+/* repeated-text rows behind the whole hero */
+
+.hero__words {
+	align-content: space-between;
+	padding: 4vh 0;
+}
+
+.hero__container {
+	position: relative;
+	z-index: var(--z-above);
+	display: grid;
+	grid-template-columns: 1.05fr 0.95fr;
+	align-items: stretch;
+	gap: clamp(24px, 0px + 3vw, 56px);
+	min-height: calc(100svh - var(--height-header));
+}
+
+.hero__content {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding-top: clamp(40px, 24px + 2.5vw, 72px);
+	padding-bottom: clamp(40px, 24px + 2.5vw, 72px);
+}
+
+.hero__title {
+	font-family: var(--font-display);
+	font-weight: 700;
+	text-transform: uppercase;
+	/* бреве над «Й» не должно задевать строку выше */
+	line-height: 1.18;
+	/* минимум 38px; длинные слова дополнительно ограничены --demo-name-word */
+	font-size: clamp(38px, 22.769px + 4.2308vw, 104px);
+	letter-spacing: 0.01em;
+	margin-bottom: 10px;
+}
+
+.hero__title span {
+	display: block;
+}
+
+.hero__title .hero__title-last {
+	color: var(--color-wine);
+}
+
+/* handwritten line under the name */
+
+.hero__script {
+	font-family: var(--font-script);
+	font-weight: 600;
+	font-size: clamp(26px, 21.385px + 1.2821vw, 46px);
+	line-height: 1.1;
+	color: var(--color-wine);
+	margin-bottom: clamp(18px, 12px + 1vw, 30px);
+}
+
+.hero__slogan {
+	font-size: clamp(16px, 15.538px + 0.1282vw, 18px);
+	line-height: 1.6;
+	color: var(--color-ink-muted);
+	max-width: 46ch;
+	margin-bottom: clamp(28px, 18px + 1.6vw, 48px);
+}
+
+.hero__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 16px;
+	margin-bottom: clamp(40px, 24px + 2.6vw, 64px);
+}
+
+.hero__visual {
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	min-height: 420px;
+}
+
+/* wine panel behind the photo */
+
+.hero__visual::before {
+	content: '';
+	position: absolute;
+	inset: clamp(28px, 18px + 1.5vw, 52px) 0 0 clamp(24px, 10px + 2vw, 56px);
+	background-color: var(--color-wine);
+}
+
+/* stamp signature on the panel */
+
+.hero__stamp {
+	position: absolute;
+	z-index: 3;
+	right: clamp(6px, 0px + 1vw, 20px);
+	bottom: clamp(40px, 28px + 2vw, 70px);
+	font-family: var(--font-script);
+	font-weight: 600;
+	font-size: clamp(20px, 17px + 0.9vw, 32px);
+	color: var(--color-cream);
+	rotate: -7deg;
+}
+
+/* ---------- Services (home): numbered rows with inversion ---------- */
+
+.services__intro {
+	max-width: 62ch;
+	color: var(--color-ink-muted);
+}
+
+.services__list {
+	border-top: 1px solid var(--color-line);
+}
+
+.services__item {
+	border-bottom: 1px solid var(--color-line);
+}
+
+.services__row {
+	display: grid;
+	grid-template-columns: clamp(64px, 44px + 3.5vw, 120px) 1fr auto;
+	align-items: center;
+	gap: clamp(16px, 8px + 1.5vw, 40px);
+	width: 100%;
+	padding: clamp(18px, 13px + 1.2vw, 30px) clamp(8px, 2px + 1vw, 20px);
+	text-align: left;
+	transition: background-color 0.3s;
+}
+
+.services__num {
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: clamp(32px, 22.769px + 2.5641vw, 72px);
+	line-height: 1;
+	color: transparent;
+	-webkit-text-stroke: 1.5px rgba(110, 34, 49, 0.5);
+	transition: -webkit-text-stroke-color 0.3s, color 0.3s;
+}
+
+.services__name {
+	font-family: var(--font-display);
+	font-weight: 600;
+	text-transform: uppercase;
+	font-size: clamp(20px, 15.385px + 1.2821vw, 40px);
+	line-height: 1.15;
+	letter-spacing: 0.02em;
+	transition: color 0.3s;
+}
+
+/* Hover inversion: the row fills with wine */
+
+@media (any-hover: hover) {
+.services__row:hover {
+		background-color: var(--color-wine);
+	}
+
+.services__row:hover .services__num {
+		-webkit-text-stroke-color: rgba(242, 231, 216, 0.65);
+	}
+
+.services__row:hover .services__name {
+		color: var(--color-cream);
+	}
+}
+
+/* ---------- Mobile sticky contact bar ---------- */
+
+.mobile-bar {
+	display: none;
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 90;
+	background-color: var(--color-surface);
+	border-top: 1px solid var(--color-line);
+	padding: 10px max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+
+.mobile-bar .btn {
+	padding: 14px 10px;
+	font-size: 13px;
+	width: 100%;
+}
+
+/* Shown on tablet and mobile: below 992 the header phone/button are hidden,
+   the bar is the only persistent CTA */
+
+@media (max-width: 61.999em) {
+.mobile-bar {
+		display: grid;
+	}
+
+/* content is not hidden behind the bar */
+
+.footer {
+		padding-bottom: 70px;
+	}
+}
+
+/* ---------- CTA (wine section with a photo) ---------- */
+
+.cta {
+	position: relative;
+	background-color: var(--color-wine);
+	color: var(--color-cream);
+	overflow: clip;
+}
+
+.cta .words__row {
+	color: rgba(242, 231, 216, 0.04);
+}
+
+.cta .words__row--outline {
+	color: transparent;
+	-webkit-text-stroke: 1px rgba(242, 231, 216, 0.12);
+}
+
+/* Label on a wine background is always cream (inner pages too) */
+
+.cta .label {
+	color: var(--color-cream);
+}
+
+.cta .label::before {
+	background-color: var(--color-cream);
+}
+
+.cta__container {
+	position: relative;
+	z-index: var(--z-above);
+	display: grid;
+	grid-template-columns: 1.15fr 0.85fr;
+	gap: clamp(32px, 12px + 3vw, 80px);
+	align-items: center;
+}
+
+.cta__title {
+	color: #fff;
+	margin-bottom: 16px;
+}
+
+.cta__text {
+	color: var(--color-cream-muted);
+	max-width: 52ch;
+	margin-bottom: clamp(24px, 16px + 1.4vw, 40px);
+}
+
+.cta__phone {
+	display: inline-block;
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: clamp(30px, 24px + 1.6667vw, 56px);
+	line-height: 1.1;
+	/* the phone number never wraps */
+	white-space: nowrap;
+	color: #fff;
+	margin-bottom: 14px;
+	transition: color 0.3s;
+}
+
+@media (any-hover: hover) {
+.cta__phone:hover {
+		color: var(--color-cream);
+	}
+}
+
+.cta__hours {
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--color-cream-muted);
+	margin-bottom: clamp(22px, 16px + 1vw, 32px);
+}
+
+.cta__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px;
+}
+
+.cta__visual {
+	position: relative;
+	padding: 0 clamp(14px, 8px + 1vw, 28px) clamp(14px, 8px + 1vw, 28px) 0;
+	justify-self: end;
+	max-width: 420px;
+}
+
+/* offset cream frame */
+
+.cta__visual::after {
+	content: '';
+	position: absolute;
+	inset: clamp(14px, 8px + 1vw, 28px) 0 0 clamp(14px, 8px + 1vw, 28px);
+	border: 1px solid rgba(242, 231, 216, 0.45);
+	pointer-events: none;
+}
+
+/* ---------- Footer ---------- */
+
+.footer {
+	background-color: var(--color-wine-dark);
+	color: var(--color-cream);
+	border-top: 1px solid rgba(242, 231, 216, 0.12);
+}
+
+.footer__main {
+	display: grid;
+	grid-template-columns: 1.2fr 1fr 1fr;
+	gap: clamp(28px, 14px + 2vw, 64px);
+	padding-top: clamp(40px, 30.769px + 2.5641vw, 80px);
+	padding-bottom: clamp(40px, 30.769px + 2.5641vw, 80px);
+}
+
+.footer__logo {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin-bottom: 18px;
+}
+
+.footer__logo-text {
+	display: grid;
+	line-height: 1.25;
+}
+
+.footer__logo-name {
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: 18px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #fff;
+}
+
+.footer__logo-role {
+	font-family: var(--font-serif);
+	font-weight: 700;
+	font-size: 11px;
+	letter-spacing: 0.3em;
+	text-transform: uppercase;
+	color: var(--color-cream-muted);
+}
+
+.footer__slogan {
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--color-cream-muted);
+	max-width: 34ch;
+}
+
+.footer__title {
+	font-family: var(--font-serif);
+	font-weight: 700;
+	font-size: 14px;
+	letter-spacing: 0.28em;
+	text-transform: uppercase;
+	color: var(--color-cream-muted);
+	margin-bottom: 20px;
+}
+
+.footer__contacts {
+	display: grid;
+	gap: 12px;
+	font-size: 15px;
+	line-height: 1.55;
+}
+
+.footer__contacts a {
+	transition: color 0.3s;
+}
+
+@media (any-hover: hover) {
+.footer__contacts a:hover {
+		color: #fff;
+		text-decoration: underline;
+		text-underline-offset: 4px;
+	}
+}
+
+.footer__bottom {
+	border-top: 1px solid rgba(242, 231, 216, 0.12);
+	padding-top: 22px;
+	padding-bottom: 22px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 10px;
+	font-size: 13px;
+	color: rgba(242, 231, 216, 0.5);
+}
+
+.footer__dev-link {
+	color: inherit;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-color: rgba(242, 231, 216, 0.25);
+	transition: color 0.3s, text-decoration-color 0.3s;
+}
+
+@media (any-hover: hover) {
+.footer__dev-link:hover {
+		color: var(--color-cream);
+		text-decoration-color: var(--color-cream);
+	}
+}
+
+/* ---------- Form ---------- */
+
+.form {
+	display: grid;
+	gap: 18px;
+}
+
+.form__field {
+	display: grid;
+	gap: 8px;
+	position: relative;
+}
+
+.form__label {
+	font-family: var(--font-display);
+	font-weight: 500;
+	font-size: 13px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--color-ink-muted);
+}
+
+.form__input,
+.form__select,
+.form__textarea {
+	border: 1px solid var(--color-line);
+	background-color: #fff;
+	padding: 14px 16px;
+	font-size: 16px;
+	line-height: 1.4;
+	color: var(--color-ink);
+	transition: border-color 0.3s;
+}
+
+.form__textarea {
+	min-height: 120px;
+	field-sizing: content;
+}
+
+.form__select {
+	width: 100%;
+	appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%236b5f57' stroke-width='1.5'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 16px center;
+	padding-right: 42px;
+}
+
+.form__input:focus-visible,
+.form__select:focus-visible,
+.form__textarea:focus-visible {
+	outline: none;
+	border-color: var(--color-wine);
+}
+
+.form__input::placeholder,
+.form__textarea::placeholder {
+	color: color-mix(in srgb, var(--color-ink-muted) 55%, transparent);
+}
+
+.form__error {
+	display: none;
+	font-size: 13px;
+	color: var(--color-red);
+}
+
+.form__field--error .form__input,
+.form__field--error .form__select,
+.form__field--error .form__textarea {
+	border-color: var(--color-red);
+}
+
+.form__field--error .form__error {
+	display: block;
+}
+
+.form__note {
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--color-ink-muted);
+}
+
+.form__success {
+	display: grid;
+	gap: 10px;
+	padding: 24px 0 8px;
+}
+
+.form__success-title {
+	font-family: var(--font-display);
+	font-weight: 600;
+	text-transform: uppercase;
+	font-size: 22px;
+	letter-spacing: 0.03em;
+	color: var(--color-wine);
+}
+
+/* ---------- Media queries ---------- */
+
+/* 1200px */
+
+@media (max-width: 74.999em) {
+/* the full header set needs ~1080px — below 1200 hide the phone,
+	   otherwise the menu wraps to a second line */
+
+.header__phone {
+		display: none;
+	}
+
+.hero__container {
+		grid-template-columns: 1.05fr 0.95fr;
+	}
+}
+
+/* 992px — tablet KEEPS two columns, we only tighten the proportions */
+
+@media (max-width: 61.999em) {
+.header__btn {
+		display: none;
+	}
+
+/* The empty actions container used to add an extra flex-gap to the right of the burger */
+
+.header__actions {
+		display: none;
+	}
+
+/* Phone and button hidden — the menu hugs the right edge */
+
+.menu__list {
+		justify-content: flex-end;
+	}
+
+/* Section heading + intro stack vertically (too tight in a row) */
+
+.section__head--row {
+		grid-template-columns: 1fr;
+		align-items: start;
+	}
+
+.hero__container {
+		grid-template-columns: 1fr 0.78fr;
+	}
+
+.cta__container {
+		grid-template-columns: 1.15fr 0.85fr;
+	}
+
+.cta__visual {
+		max-width: none;
+		width: 100%;
+	}
+
+/* Footer: logo block full-width, "Навігація" and "Контакти" on the same level */
+
+.footer__main {
+		grid-template-columns: 1fr 1fr;
+	}
+
+.footer__main .footer__col:first-child {
+		grid-column: 1 / -1;
+	}
+}
+
+/* 768px — split sections collapse into one column here */
+
+@media (max-width: 47.999em) {
+:root {
+		--height-header: 64px;
+	}
+
+/* Hero stacks vertically */
+
+.hero__container {
+		grid-template-columns: 1fr;
+		min-height: 0;
+	}
+
+.hero__content {
+		order: 1;
+		padding-bottom: 0;
+	}
+
+.hero__visual {
+		order: 2;
+		margin-top: 40px;
+		max-width: 420px;
+		width: 100%;
+		justify-self: center;
+		min-height: 0;
+	}
+
+.hero__actions {
+		margin-bottom: clamp(28px, 18px + 1.6vw, 48px);
+	}
+
+/* Repeated-text textures: smaller and without the top row (don't interfere with the text) */
+
+.words__row {
+		font-size: 36px;
+	}
+
+.hero__words .words__row:first-child {
+		display: none;
+	}
+
+/* More compact labels — no wrapping */
+
+.label {
+		font-size: 13px;
+		letter-spacing: 0.2em;
+		gap: 10px;
+	}
+
+.label::before {
+		width: 20px;
+	}
+
+.cta__container {
+		grid-template-columns: 1fr;
+	}
+
+.cta__visual {
+		justify-self: start;
+		max-width: 380px;
+	}
+
+/* Burger menu */
+
+/* Burger hugs the right edge of the header */
+
+.header__menu {
+		display: flex;
+		justify-content: flex-end;
+	}
+
+.icon-menu {
+		display: block;
+		position: relative;
+		width: 30px;
+		height: 18px;
+		z-index: 5;
+		flex-shrink: 0;
+	}
+
+@media (any-hover: none) {
+.icon-menu {
+			cursor: default;
+		}
+}
+
+.icon-menu span,
+.icon-menu::before,
+.icon-menu::after {
+		content: '';
+		transition: all 0.3s ease 0s;
+		right: 0;
+		position: absolute;
+		width: 100%;
+		height: 2px;
+		background-color: var(--color-ink);
+	}
+
+.icon-menu::before {
+		top: 0;
+	}
+
+.icon-menu::after {
+		bottom: 0;
+	}
+
+.icon-menu span {
+		top: calc(50% - 1px);
+	}
+
+[data-menu-open] .icon-menu span {
+		width: 0;
+	}
+
+[data-menu-open] .icon-menu::before {
+		top: calc(50% - 1px);
+		transform: rotate(-45deg);
+	}
+
+[data-menu-open] .icon-menu::after {
+		bottom: calc(50% - 1px);
+		transform: rotate(45deg);
+	}
+
+/* Mobile menu panel */
+
+.menu__body {
+		position: fixed;
+		width: 100%;
+		height: 100svh;
+		left: -100%;
+		top: 0;
+		overflow: auto;
+		padding: calc(var(--height-header) + 30px) 20px 40px;
+		background-color: var(--color-bg);
+		/* visibility keeps links of the closed menu out of the tab order */
+		visibility: hidden;
+		transition: left 0.3s, visibility 0.3s;
+		z-index: 4;
+	}
+
+.menu__body::before {
+		content: '';
+		position: fixed;
+		width: 100%;
+		height: var(--height-header);
+		left: -100%;
+		top: 0;
+		background-color: var(--color-bg);
+		border-bottom: 1px solid var(--color-line);
+		transition: left 0.3s;
+		z-index: 2;
+	}
+
+[data-menu-open] .menu__body,
+[data-menu-open] .menu__body::before {
+		left: 0;
+		visibility: visible;
+	}
+
+.menu__list {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0;
+	}
+
+.menu__item {
+		width: 100%;
+		border-bottom: 1px solid var(--color-line);
+	}
+
+.menu__link {
+		display: block;
+		width: 100%;
+		font-family: var(--font-display);
+		font-size: 28px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		padding: 16px 0;
+	}
+
+.menu__link::after {
+		display: none;
+	}
+
+.menu__link--active {
+		color: var(--color-wine);
+	}
+
+/* Phone and button in the mobile menu */
+
+.menu__extra {
+		display: grid;
+		justify-items: start;
+		gap: 18px;
+		padding-top: 28px;
+	}
+
+.menu__extra-phone {
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-size: 28px;
+	}
+}
+
+/* 480px */
+
+@media (max-width: 29.999em) {
+.footer__main {
+		grid-template-columns: 1fr;
+	}
+
+.services__row {
+		grid-template-columns: clamp(44px, 34px + 3vw, 60px) 1fr auto;
+	}
+
+.hero__actions .btn {
+		width: 100%;
+	}
+
+.hero__stamp {
+		display: none;
+	}
+}
+
+
+/* ============================================================
+   Демо: связка с shared/demo.css и элементы вместо удалённого
+   ============================================================ */
+
+:root {
+	--demo-bg: var(--color-bg);
+	--demo-surface: var(--color-surface);
+	--demo-fg: var(--color-ink);
+	--demo-muted: var(--color-ink-muted);
+	--demo-accent: var(--color-wine);
+	--demo-accent-fg: var(--color-cream);
+	--demo-line: var(--color-line);
+	--demo-font-display: var(--font-display);
+	--demo-font-text: var(--font-sans);
+	--demo-font-label: var(--font-display);
+}
+
+/* Лента «Демо для …» сверху: шапка и отступ страницы сдвигаются на её высоту */
+.header {
+	top: var(--demo-ribbon-h, 0px);
+}
+
+.page {
+	padding-top: calc(var(--height-header) + var(--demo-ribbon-h, 0px));
+}
+
+.hero__container {
+	min-height: calc(100svh - var(--height-header) - var(--demo-ribbon-h, 0px));
+}
+
+/* Знак-терези вместо логотипа основы */
+.header__logo-mark {
+	width: 40px;
+	height: 40px;
+	flex-shrink: 0;
+	fill: none;
+	stroke: var(--color-wine);
+	stroke-width: 3;
+	stroke-linecap: round;
+}
+
+.header__logo-name {
+	display: -webkit-box;
+	max-width: 24ch;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+}
+
+/* Длинное имя или название (> 28 символов) — кегль меньше */
+.hero__content {
+	min-width: 0;
+	container-type: inline-size;
+}
+
+/* Кегль не больше, чем помещается самое длинное слово (см. --demo-name-word) */
+.hero__title {
+	--hero-title-size: clamp(38px, 22.769px + 4.2308vw, 104px);
+	font-size: min(var(--hero-title-size), 100cqi / (var(--demo-name-word, 8) * 0.62));
+	overflow-wrap: break-word;
+}
+
+.hero__title--long {
+	--hero-title-size: clamp(30px, 19.846px + 2.8205vw, 74px);
+}
+
+.hero__title--xlong {
+	--hero-title-size: clamp(26px, 18.769px + 2.0513vw, 58px);
+}
+
+/* Место под фото лида — на винной плашке, как портрет в основе */
+.hero__photo {
+	z-index: var(--z-above);
+	width: min(88%, 430px);
+	height: auto;
+	aspect-ratio: 3 / 4;
+	margin-bottom: clamp(24px, 14px + 1.5vw, 44px);
+	color: var(--color-ink-muted);
+	background-color: var(--color-surface);
+	box-shadow: 0 34px 60px rgba(36, 29, 26, 0.35);
+}
+
+/* Рейтинг из карточки (только если он есть) */
+.hero__facts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: clamp(24px, 10px + 2vw, 56px);
+	border-top: 1px solid var(--color-line);
+	padding-top: clamp(20px, 14px + 1vw, 32px);
+}
+
+.hero__fact {
+	display: grid;
+	gap: 4px;
+}
+
+.hero__fact-value {
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: clamp(28px, 24.308px + 1.0256vw, 44px);
+	line-height: 1;
+	color: var(--color-ink);
+}
+
+.hero__fact-value span + span {
+	margin-left: 6px;
+	font-size: 0.6em;
+	color: var(--color-red);
+}
+
+.hero__fact-text {
+	font-size: 13px;
+	letter-spacing: 0.04em;
+	color: var(--color-ink-muted);
+}
+
+/* Строка услуги — ссылка на форму, стрелка вместо «Детальніше» */
+.services__go {
+	display: inline-flex;
+	color: var(--color-ink-muted);
+	transition: color 0.3s;
+}
+
+.services__go svg {
+	width: 22px;
+	height: 10px;
+	stroke: currentColor;
+	fill: none;
+	transition: translate 0.3s;
+}
+
+@media (any-hover: hover) {
+	.services__row:hover .services__go {
+		color: var(--color-cream);
+	}
+
+	.services__row:hover .services__go svg {
+		translate: 6px 0;
+	}
+}
+
+/* Форма в CTA — на месте фото основы, со смещённой кремовой рамкой */
+.cta__form {
+	position: relative;
+	justify-self: end;
+	width: 100%;
+	max-width: 460px;
+	padding: 0 clamp(14px, 8px + 1vw, 28px) clamp(14px, 8px + 1vw, 28px) 0;
+}
+
+.cta__form::after {
+	content: '';
+	position: absolute;
+	inset: clamp(14px, 8px + 1vw, 28px) 0 0 clamp(14px, 8px + 1vw, 28px);
+	border: 1px solid rgba(242, 231, 216, 0.45);
+	pointer-events: none;
+}
+
+.cta__form [data-form-wrap] {
+	position: relative;
+	z-index: var(--z-above);
+	padding: clamp(24px, 16px + 1.6vw, 40px);
+	color: var(--color-ink);
+	background-color: var(--color-surface);
+	box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
+.cta__form-title {
+	font-family: var(--font-display);
+	font-weight: 600;
+	font-size: clamp(20px, 18.615px + 0.3846vw, 26px);
+	line-height: 1.2;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	color: var(--color-wine);
+}
+
+.cta__form .form__submit {
+	width: 100%;
+}
+
+.cta__phone .circled {
+	overflow-wrap: normal;
+}
+
+/* Подвал: две колонки вместо трёх (навигации по страницам в демо нет) */
+.footer__main {
+	grid-template-columns: 1.2fr 1fr;
+}
+
+.footer__contacts p {
+	color: var(--color-cream-muted);
+}
+
+@media (max-width: 61.999em) {
+	.cta__form {
+		justify-self: stretch;
+		max-width: none;
+	}
+}
+
+@media (max-width: 47.999em) {
+	.hero__photo {
+		width: min(100%, 360px);
+	}
+
+	.cta__form {
+		justify-self: stretch;
+	}
+
+	.header__logo-name {
+		max-width: 20ch;
+		font-size: 14px;
+	}
+}
+
+@media (max-width: 29.999em) {
+	.cta__phone {
+		margin-left: 0.4em;
+		font-size: clamp(26px, 20px + 2vw, 30px);
+	}
+}
+
+/* Появление блоков (без GSAP — IntersectionObserver в js/app.js) */
+.motion [data-reveal] {
+	opacity: 0;
+	translate: 0 24px;
+	transition: opacity 0.8s cubic-bezier(0.19, 1, 0.22, 1), translate 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.motion [data-reveal][data-reveal-in] {
+	opacity: 1;
+	translate: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.motion [data-reveal] {
+		opacity: 1;
+		translate: none;
+		transition: none;
+	}
+}

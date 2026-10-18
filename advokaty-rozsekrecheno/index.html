@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="noindex, nofollow">
+	<title>Демо сайту адвокатів</title>
+	<meta name="description" content="Демонстрація майбутнього сайту адвокатського об'єднання.">
+	<meta name="theme-color" content="#0D0D0F">
+	<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Manrope:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+		rel="stylesheet">
+
+	<link rel="stylesheet" href="../shared/demo.css">
+	<link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="css/style.css">
+	<script src="../shared/demo.js"></script>
+
+	<!-- Стартовые состояния анимаций живут в CSS под классом js-anim.
+	     Страховка: если через 5с анимации не поднялись, показываем всё принудительно. -->
+	<script>
+		(function () {
+			var html = document.documentElement;
+			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+			html.classList.add('js-anim');
+			window.animFallbackTimer = setTimeout(function () {
+				html.classList.remove('js-anim');
+			}, 5000);
+		})();
+	</script>
+</head>
+
+<body>
+
+	<div class="demo-ribbon" role="note">
+		<span class="demo-ribbon__text">Демо для <span data-demo="name"></span></span>
+		<span aria-hidden="true">·</span>
+		<a class="demo-ribbon__link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a>
+	</div>
+
+	<!-- Зерно бумаги поверх всей страницы -->
+	<svg class="grain" aria-hidden="true" focusable="false">
+		<filter id="grain-filter">
+			<feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch" />
+			<feColorMatrix type="saturate" values="0" />
+		</filter>
+		<rect width="100%" height="100%" filter="url(#grain-filter)" />
+	</svg>
+
+	<div class="wrapper">
+
+		<!-- ================= ШАПКА ================= -->
+		<header class="header" data-header-scroll="60" data-lp>
+			<div class="header__container">
+				<a class="header__logo logo" href="#hero" data-goto="#hero" aria-label="На початок сторінки">
+					<span class="logo__mark" aria-hidden="true">
+						<span class="logo__mark-letters">§</span>
+					</span>
+					<span class="logo__text">
+						<span class="logo__name"><span data-demo="name_line1"></span><br><span data-demo="name_line2"></span></span>
+						<span class="logo__sub" data-demo="city"></span>
+					</span>
+				</a>
+
+				<nav class="header__nav nav" aria-label="Основна навігація">
+					<ul class="nav__list">
+						<li class="nav__item"><a class="nav__link" href="#practice" data-goto="#practice"
+								data-goto-header>Картотека</a></li>
+						<li class="nav__item"><a class="nav__link" href="#contacts" data-goto="#contacts"
+								data-goto-header>Контакти</a></li>
+					</ul>
+				</nav>
+
+				<div class="header__actions">
+					<a class="header__phone" data-demo="phone_href"><span data-demo="phone"></span></a>
+					<a class="header__button button button--seal" href="#contacts" data-goto="#contacts" data-goto-header>
+						<span>Зв'язатися</span>
+					</a>
+				</div>
+
+				<button class="header__burger burger" type="button" data-menu aria-label="Відкрити меню"
+					aria-controls="mobile-menu">
+					<span class="burger__line"></span>
+					<span class="burger__line"></span>
+				</button>
+			</div>
+		</header>
+
+		<!-- Мобильное меню -->
+		<div class="mobile-menu" id="mobile-menu">
+			<div class="mobile-menu__inner">
+				<span class="mobile-menu__label">Опис справи</span>
+				<ul class="mobile-menu__list">
+					<li><a class="mobile-menu__link" href="#practice" data-goto="#practice"
+							data-goto-header><i>01</i>Картотека</a></li>
+					<li><a class="mobile-menu__link" href="#contacts" data-goto="#contacts"
+							data-goto-header><i>02</i>Контакти</a></li>
+				</ul>
+				<a class="mobile-menu__phone" data-demo="phone_href"><span data-demo="phone"></span></a>
+			</div>
+		</div>
+
+		<main class="page">
+
+			<!-- ================= ПЕРВЫЙ ЭКРАН ================= -->
+			<section class="hero" id="hero">
+				<!-- Видео-подложка: одна на все демо; на мобильных не грузится вовсе (см. CSS) -->
+				<div class="hero__media" aria-hidden="true">
+					<video class="hero__video" src="../shared/video/hero.mp4" autoplay muted loop playsinline
+						preload="metadata"></video>
+				</div>
+
+				<div class="hero__container">
+
+					<div class="hero__meta">
+						<span class="hero__meta-item">Справа № демо</span>
+						<span class="hero__meta-sep" aria-hidden="true"></span>
+						<span class="hero__meta-item">Том I · аркуш 1</span>
+						<span class="hero__meta-sep" aria-hidden="true"></span>
+						<span class="hero__meta-item" data-demo="city"></span>
+					</div>
+
+					<!-- Название лида: вторая строка «рассекречивается» при загрузке -->
+					<h1 class="hero__title" data-demo-long="hero__title">
+						<span class="hero__line" data-demo="name_line1"></span>
+						<span class="hero__line"><span class="redact" data-demo="name_line2"></span></span>
+					</h1>
+
+					<div class="hero__bottom">
+						<div class="hero__text">
+							<p class="hero__slogan" data-demo="slogan"></p>
+							<p class="hero__lead" data-demo="lead"></p>
+						</div>
+						<div class="hero__actions">
+							<a class="button button--seal button--big" href="#contacts" data-goto="#contacts" data-goto-header>
+								<span>Обговорити ситуацію</span>
+							</a>
+							<a class="button button--ghost button--big" href="#practice" data-goto="#practice"
+								data-goto-header>
+								<span>Відкрити картотеку</span>
+							</a>
+						</div>
+					</div>
+
+					<!-- Круглый штамп -->
+					<div class="hero__stamp stamp" aria-hidden="true">
+						<svg class="stamp__svg" viewBox="0 0 200 200">
+							<defs>
+								<path id="stamp-circle" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0" />
+							</defs>
+							<circle class="stamp__ring" cx="100" cy="100" r="92" />
+							<circle class="stamp__ring stamp__ring--inner" cx="100" cy="100" r="60" />
+							<text class="stamp__text">
+								<textPath href="#stamp-circle" startOffset="0%">
+									СУВОРО КОНФІДЕНЦІЙНО · ADVOCATUS TACET ·
+								</textPath>
+							</text>
+							<text class="stamp__core" x="100" y="94">АДВ.</text>
+							<text class="stamp__core stamp__core--small" x="100" y="118">ТАЄМНИЦЯ</text>
+						</svg>
+					</div>
+
+					<a class="hero__scroll" href="#practice" data-goto="#practice" data-goto-header>
+						<span class="hero__scroll-text">Гортати справу</span>
+						<span class="hero__scroll-line" aria-hidden="true"></span>
+					</a>
+				</div>
+			</section>
+
+			<!-- ================= КАРТОТЕКА ================= -->
+			<section class="practice section" id="practice">
+				<div class="practice__container">
+
+					<div class="section__head">
+						<span class="section__num">01</span>
+						<h2 class="section__title js-split">Картотека</h2>
+						<p class="section__note js-fade">
+							Напрями, за якими можна звернутися. Відкрийте теку — і бланк звернення одразу
+							заповниться цим напрямом.
+						</p>
+					</div>
+
+					<ul class="practice__list" data-demo-list="services">
+						<li class="practice__item folder js-fade">
+							<a class="folder__button" href="#contacts" data-goto="#contacts" data-goto-header data-service>
+								<span class="folder__tab" aria-hidden="true"></span>
+								<span class="folder__index" data-demo-index></span>
+								<span class="folder__body">
+									<span class="folder__title" data-demo-item></span>
+								</span>
+								<span class="folder__more">Звернутися</span>
+							</a>
+						</li>
+					</ul>
+				</div>
+			</section>
+
+			<!-- ================= КОНТАКТЫ ================= -->
+			<section class="contacts section" id="contacts">
+				<div class="contacts__container">
+					<div class="section__head">
+						<span class="section__num">02</span>
+						<h2 class="section__title js-split">Звернення</h2>
+						<p class="section__note js-fade">Заповніть бланк або зателефонуйте.</p>
+					</div>
+
+					<div class="contacts__body">
+
+						<form class="contacts__form form" data-form="dev">
+							<div class="form__head">
+								<span class="form__label">Бланк звернення</span>
+								<span class="form__code">Ф-1 / КОНФ.</span>
+							</div>
+
+							<div class="form__row">
+								<label class="form__field field">
+									<span class="field__label">Як до вас звертатися</span>
+									<input class="field__input" type="text" name="form[name]" placeholder="Ім'я"
+										autocomplete="name" required data-form-validatenow
+										data-form-errtext="Вкажіть, як до вас звертатися">
+								</label>
+								<label class="form__field field">
+									<span class="field__label">Телефон для зв'язку</span>
+									<input class="field__input" type="tel" name="form[phone]"
+										placeholder="+380 __ ___ __ __" autocomplete="tel" inputmode="tel"
+										required data-form-validatenow data-form-errtext="Введіть номер телефону">
+								</label>
+							</div>
+
+							<label class="form__field field">
+								<span class="field__label">Напрям</span>
+								<select class="field__input field__input--select" name="form[direction]" data-demo-list="services">
+									<option data-demo-item></option>
+									<option value="">Оберіть напрям</option>
+								</select>
+							</label>
+
+							<label class="form__field field">
+								<span class="field__label">Що сталося</span>
+								<textarea class="field__input field__input--area" name="form[message]" rows="4"
+									data-input-autoheight data-input-autoheight-min="90" data-input-autoheight-max="260"
+									placeholder="Коротко, без подробиць — їх обговоримо особисто"></textarea>
+							</label>
+
+							<label class="form__agree agree">
+								<input class="agree__input" type="checkbox" name="form[agree]" required
+									data-form-errtext="Потрібна згода на обробку даних" checked>
+								<span class="agree__box" aria-hidden="true"></span>
+								<span class="agree__text">Погоджуюся на обробку персональних даних.</span>
+							</label>
+
+							<button class="form__submit button button--seal button--big" type="submit">
+								<span>Надіслати звернення</span>
+							</button>
+
+							<div class="form__done" data-form-done>
+								<span class="form__done-stamp">Прийнято</span>
+								<p class="form__done-text"><b>Так заявка прийде вам у Telegram.</b> Ім'я, телефон
+									і напрям — одним повідомленням. Це демо, тому зараз нічого не надіслано.</p>
+							</div>
+						</form>
+
+						<aside class="contacts__side">
+							<div class="contacts__card js-fade">
+								<span class="contacts__card-label">Телефон</span>
+								<a class="contacts__card-value" data-demo="phone_href"><span data-demo="phone"></span></a>
+								<p class="contacts__card-note" data-demo-if="hours" data-demo="hours"></p>
+							</div>
+
+							<ul class="contacts__info">
+								<li class="contacts__info-item js-fade" data-demo-if="address">
+									<span class="contacts__info-label">Офіс</span>
+									<span class="contacts__info-value" data-demo="address"></span>
+								</li>
+								<li class="contacts__info-item js-fade">
+									<span class="contacts__info-label">Місто</span>
+									<span class="contacts__info-value" data-demo="city"></span>
+								</li>
+								<li class="contacts__info-item js-fade" data-demo-if="rating">
+									<span class="contacts__info-label">Оцінка клієнтів</span>
+									<span class="contacts__info-value"><span data-demo="rating"></span> з 5<span data-demo-if="reviews"> · <span data-demo="reviews"></span> відгуків</span><br><span class="demo-source" translate="no">Google Maps</span></span>
+								</li>
+							</ul>
+						</aside>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= ТИЗЕР ПОЛНОЙ ВЕРСИИ ================= -->
+			<section class="demo-teaser" aria-labelledby="demo-teaser-title">
+				<div class="demo-teaser__container">
+					<p class="demo-teaser__label">Демо-версія</p>
+					<h2 class="demo-teaser__title" id="demo-teaser-title">Це демо</h2>
+					<p class="demo-teaser__lead">У повній версії сайту:</p>
+					<ul class="demo-teaser__list">
+						<li class="demo-teaser__item">Хід справи</li>
+						<li class="demo-teaser__item">Склад об'єднання</li>
+						<li class="demo-teaser__item">Витяги зі справ</li>
+						<li class="demo-teaser__item">Ключові цифри</li>
+						<li class="demo-teaser__item">Цитата керівника</li>
+						<li class="demo-teaser__item">Детальні картки напрямів</li>
+					</ul>
+					<div class="demo-teaser__previews" aria-hidden="true">
+						<figure class="demo-teaser__preview"><img class="demo-teaser__img" src="img/teaser-1.webp" alt="" width="480" height="360" loading="lazy"></figure>
+						<figure class="demo-teaser__preview"><img class="demo-teaser__img" src="img/teaser-2.webp" alt="" width="480" height="360" loading="lazy"></figure>
+						<figure class="demo-teaser__preview"><img class="demo-teaser__img" src="img/teaser-3.webp" alt="" width="480" height="360" loading="lazy"></figure>
+					</div>
+					<a class="demo-teaser__button" href="https://webdevsergey.com/" target="_blank" rel="noopener">Обговорити повну версію</a>
+				</div>
+			</section>
+
+		</main>
+
+		<!-- ================= ПОДВАЛ ================= -->
+		<footer class="footer">
+			<div class="footer__container">
+				<div class="footer__top">
+					<a class="footer__logo logo logo--footer" href="#hero" data-goto="#hero">
+						<span class="logo__mark" aria-hidden="true"><span class="logo__mark-letters">§</span></span>
+						<span class="logo__text">
+							<span class="logo__name" data-demo="name"></span>
+							<span class="logo__sub" data-demo="city"></span>
+						</span>
+					</a>
+					<p class="footer__slogan" data-demo="slogan"></p>
+				</div>
+
+				<div class="footer__bottom">
+					<span class="footer__copy">© <span data-year></span> <span data-demo="name"></span></span>
+					<span class="footer__legal">Інформація на сайті не є публічною офертою</span>
+					<p class="footer__dev">Розробка сайту — <a class="footer__dev-link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a></p>
+				</div>
+			</div>
+		</footer>
+
+	</div>
+
+	<script src="../shared/vendor/gsap-3.15.0.min.js"></script>
+	<script src="../shared/vendor/ScrollTrigger-3.15.0.min.js"></script>
+	<script src="../shared/vendor/SplitText-3.15.0.min.js"></script>
+	<script src="../shared/vendor/lenis-1.3.25.min.js"></script>
+	<script src="js/main.js" defer></script>
+	<script src="js/anim.js" defer></script>
+</body>
+
+</html>

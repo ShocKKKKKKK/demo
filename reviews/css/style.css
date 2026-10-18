@@ -1,0 +1,231 @@
+/* ==========================================================================
+   Основа «Сбор отзывов»: QR-картка А6 и вікно оцінки.
+   Общие блоки (hero, step, phone, chat, auto, cta, footer) — ../shared/scene.css.
+   ========================================================================== */
+
+.step--tint {
+	background-color: #ece5d6;
+}
+
+/* --- QR-картка А6 (105 × 148 мм) --------------------------------------- */
+
+.qr-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: min(100%, 340px);
+	aspect-ratio: 105 / 148;
+	padding: clamp(22px, 18px + 1vw, 32px) clamp(18px, 14px + 1vw, 28px);
+	text-align: center;
+	background-color: var(--scene-paper);
+	border-radius: 6px;
+	box-shadow: var(--scene-shadow), 0 0 0 1px var(--scene-line);
+	transform: rotate(-2deg);
+	transition: transform 0.4s;
+}
+
+@media (any-hover: hover) {
+	.qr-card:hover {
+		transform: rotate(0);
+	}
+}
+
+.qr-card__stars {
+	margin-bottom: 10px;
+	font-size: 18px;
+	letter-spacing: 0.2em;
+	color: var(--scene-star);
+}
+
+.qr-card__name {
+	display: -webkit-box;
+	overflow: hidden;
+	font-family: var(--scene-font-display);
+	font-size: clamp(19px, 17px + 0.5vw, 23px);
+	font-weight: 700;
+	line-height: 1.15;
+	overflow-wrap: anywhere;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+}
+
+.qr-card__city {
+	margin-top: 4px;
+	font-size: 13px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--scene-muted);
+}
+
+.qr-card__code {
+	display: block;
+	flex-shrink: 0;
+	width: 62%;
+	aspect-ratio: 1;
+	margin: auto 0;
+	padding: 6px;
+	background-color: #fff;
+	/* Узор-заглушка, пока QR не нарисован (или библиотека не загрузилась) */
+	background-image:
+		linear-gradient(45deg, var(--scene-line) 25%, transparent 25%, transparent 75%, var(--scene-line) 75%),
+		linear-gradient(45deg, var(--scene-line) 25%, transparent 25%, transparent 75%, var(--scene-line) 75%);
+	background-position: 0 0, 8px 8px;
+	background-size: 16px 16px;
+}
+
+.qr-card__code--ready {
+	background-image: none;
+}
+
+.qr-card__code svg {
+	width: 100%;
+	height: 100%;
+}
+
+.qr-card__caption {
+	font-size: clamp(15px, 14px + 0.3vw, 17px);
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.qr-card__hint {
+	margin-top: 4px;
+	font-size: 12px;
+	color: var(--scene-muted);
+}
+
+/* --- Вікно оцінки (стилізований макет, не копія інтерфейсу) ------------- */
+
+.rate {
+	width: min(100%, 460px);
+}
+
+.rate__form {
+	display: flex;
+	flex-direction: column;
+	padding: clamp(20px, 16px + 1.2vw, 32px);
+	background-color: var(--scene-paper);
+	border-radius: var(--scene-radius);
+	box-shadow: var(--scene-shadow);
+}
+
+.rate__title {
+	margin-bottom: 14px;
+	font-size: clamp(18px, 16px + 0.5vw, 22px);
+	font-weight: 600;
+	line-height: 1.3;
+	overflow-wrap: anywhere;
+}
+
+.rate__stars {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 20px;
+}
+
+.rate__star {
+	padding: 2px;
+	font-size: clamp(34px, 30px + 1vw, 42px);
+	line-height: 1;
+	color: #d6d2c8;
+	background: none;
+	border: 0;
+	transition: color 0.15s, transform 0.15s;
+}
+
+.rate__star--on {
+	color: var(--scene-star);
+}
+
+.rate__star:focus-visible {
+	outline: 2px solid var(--scene-accent);
+	outline-offset: 2px;
+	border-radius: 6px;
+}
+
+@media (any-hover: hover) {
+	.rate__star:hover {
+		transform: scale(1.12);
+	}
+}
+
+.rate__label {
+	margin-bottom: 6px;
+	font-size: 13px;
+	color: var(--scene-muted);
+}
+
+.rate__field {
+	width: 100%;
+	min-height: 112px;
+	padding: 12px 14px;
+	resize: vertical;
+	background-color: #fff;
+	border: 1px solid var(--scene-line);
+	border-radius: 12px;
+	outline: none;
+	transition: border-color 0.2s;
+}
+
+.rate__field:focus {
+	border-color: var(--scene-accent);
+}
+
+.rate__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 16px;
+}
+
+.rate__button {
+	min-height: 44px;
+	padding: 10px 22px;
+	font-weight: 600;
+	color: #fff;
+	background-color: var(--scene-accent);
+	border: 0;
+	border-radius: 999px;
+}
+
+.rate__button--ghost {
+	color: var(--scene-accent);
+	background-color: transparent;
+}
+
+.rate__done {
+	margin-top: 14px;
+	padding: 10px 14px;
+	font-size: 14px;
+	color: var(--scene-accent);
+	background-color: var(--scene-accent-soft);
+	border-radius: 12px;
+}
+
+.rate__note {
+	margin-top: 14px;
+	font-size: 13px;
+	text-align: center;
+	color: var(--scene-muted);
+}
+
+@media (max-width: 379.98px) {
+	.rate__actions {
+		justify-content: stretch;
+	}
+
+	.rate__button {
+		flex: 1 1 auto;
+	}
+}
+
+.rate__ask {
+	display: block;
+	margin-bottom: 2px;
+	font-size: 13px;
+	font-weight: 400;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--scene-muted);
+}

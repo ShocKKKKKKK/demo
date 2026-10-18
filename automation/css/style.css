@@ -1,0 +1,712 @@
+/* ==========================================================================
+   Основа «Автоматизация заявок»: проигрыватель из 4 сцен.
+   Сцены лежат стопкой в .player__stage, видна активная (.player__scene--active).
+   Элементы .reveal внутри появляются с задержкой data-delay (JS пишет её в --delay).
+   Общие блоки (hero, phone, chat, auto, cta, footer) — ../shared/scene.css.
+   ========================================================================== */
+
+/* --- Проигрыватель ------------------------------------------------------ */
+
+.player {
+	padding: clamp(24px, 16px + 2vw, 56px) 0 clamp(56px, 36px + 4vw, 112px);
+}
+
+.player__container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 16px;
+}
+
+.player__title {
+	margin-bottom: clamp(24px, 18px + 1.6vw, 44px);
+	font-family: var(--scene-font-display);
+	font-size: clamp(26px, 20px + 1.5vw, 40px);
+	font-weight: 700;
+	line-height: 1.12;
+	text-wrap: balance;
+}
+
+.player__body {
+	display: grid;
+	grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+	align-items: center;
+	gap: clamp(24px, 12px + 3.4vw, 80px);
+}
+
+.player__steps {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.player__step-button {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	width: 100%;
+	padding: 16px 18px;
+	overflow: hidden;
+	text-align: left;
+	background-color: transparent;
+	border: 1px solid transparent;
+	border-radius: 16px;
+	transition: background-color 0.3s, border-color 0.3s;
+}
+
+.player__step-button--active {
+	background-color: var(--scene-paper);
+	border-color: var(--scene-line);
+	box-shadow: 0 12px 30px -20px rgba(28, 35, 32, 0.4);
+}
+
+.player__step-button:focus-visible {
+	outline: 2px solid var(--scene-accent);
+	outline-offset: 2px;
+}
+
+@media (any-hover: hover) {
+	.player__step-button:hover {
+		border-color: var(--scene-line);
+	}
+}
+
+.player__step-num {
+	display: grid;
+	flex-shrink: 0;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	font-size: 14px;
+	font-weight: 700;
+	color: var(--scene-accent);
+	background-color: var(--scene-accent-soft);
+	border-radius: 50%;
+	transition: background-color 0.3s, color 0.3s;
+}
+
+.player__step-button--active .player__step-num,
+.player__step-button--done .player__step-num {
+	color: #fff;
+	background-color: var(--scene-accent);
+}
+
+.player__step-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.player__step-title {
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.player__step-lead {
+	font-size: 15px;
+	line-height: 1.45;
+	color: var(--scene-muted);
+}
+
+/* Полоска времени сцены: длительность пишет JS в --step-duration */
+.player__step-bar {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 3px;
+	background-color: var(--scene-accent);
+	transform: scaleX(0);
+	transform-origin: left;
+}
+
+.player__step-button--active .player__step-bar {
+	animation: player-bar var(--step-duration, 6s) linear forwards;
+}
+
+.player--paused .player__step-bar {
+	animation: none;
+}
+
+@keyframes player-bar {
+	to {
+		transform: scaleX(1);
+	}
+}
+
+.player__stage {
+	position: relative;
+	display: grid;
+	min-width: 0;
+	min-height: 640px;
+	padding: clamp(16px, 10px + 1.6vw, 36px);
+	background-color: #e7e0d0;
+	background-image: radial-gradient(rgba(28, 35, 32, 0.08) 1px, transparent 1px);
+	background-size: 18px 18px;
+	border-radius: 28px;
+}
+
+/* Сцены — в одной ячейке сетки, чтобы сцена задавала высоту, а не absolute */
+.player__scene {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 14px;
+	grid-area: 1 / 1;
+	min-width: 0;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(16px);
+	transition: opacity 0.5s, transform 0.5s, visibility 0s 0.5s;
+}
+
+.player__scene--active {
+	opacity: 1;
+	visibility: visible;
+	transform: none;
+	transition: opacity 0.5s, transform 0.5s, visibility 0s;
+}
+
+.player__who {
+	max-width: 100%;
+	padding: 5px 12px;
+	overflow: hidden;
+	font-size: 13px;
+	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--scene-accent);
+	background-color: var(--scene-paper);
+	border-radius: 999px;
+}
+
+.player__controls {
+	display: flex;
+	justify-content: center;
+	margin-top: clamp(20px, 16px + 1vw, 32px);
+}
+
+.player__replay {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 48px;
+	padding: 12px 24px;
+	font-weight: 600;
+	color: var(--scene-accent);
+	background-color: transparent;
+	border: 2px solid var(--scene-accent);
+	border-radius: 999px;
+	transition: background-color 0.25s, color 0.25s;
+}
+
+.player__replay--attention {
+	color: #fff;
+	background-color: var(--scene-accent);
+}
+
+.player__replay-icon {
+	width: 18px;
+	height: 18px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+@media (any-hover: hover) {
+	.player__replay:hover {
+		color: #fff;
+		background-color: var(--scene-accent);
+	}
+}
+
+.player__caption {
+	display: none;
+}
+
+@media (max-width: 860px) {
+	.player__caption {
+		display: block;
+		min-height: 3em;
+		margin: -8px 0 0;
+		font-size: 15px;
+		line-height: 1.45;
+		text-align: center;
+		color: var(--scene-muted);
+	}
+
+	.player__body {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	/* На узком экране шаги — компактная лента номеров над сценой, подпись — только у активного */
+	.player__steps {
+		flex-direction: row;
+		gap: 6px;
+	}
+
+	.player__step {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+
+	.player__step-button {
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+		height: 100%;
+		padding: 10px 6px 12px;
+		text-align: center;
+	}
+
+	.player__step-title {
+		font-size: 13px;
+		line-height: 1.25;
+	}
+
+	.player__step-lead {
+		display: none;
+	}
+
+	.player__stage {
+		min-height: 600px;
+	}
+}
+
+@media (max-width: 479.98px) {
+	.player__step-title {
+		display: none;
+	}
+
+	.player__step-button {
+		padding: 8px 4px 10px;
+	}
+
+	.player__stage {
+		margin: 0 -16px;
+		min-height: 580px;
+		border-radius: 0;
+	}
+}
+
+/* --- Появление элементов сцены ----------------------------------------- */
+
+.reveal {
+	opacity: 0;
+	transform: translateY(10px);
+}
+
+.player__scene--active .reveal {
+	opacity: 1;
+	transform: none;
+	transition: opacity 0.45s var(--delay, 0ms), transform 0.45s var(--delay, 0ms);
+}
+
+/* «Нажатие» кнопки: появляется сразу, по задержке темнеет и пружинит */
+.reveal--press {
+	opacity: 1;
+	transform: none;
+}
+
+.player__scene--active .reveal--press {
+	animation: reveal-press 0.5s var(--delay, 0ms) both;
+}
+
+@keyframes reveal-press {
+	40% {
+		filter: brightness(0.75);
+		transform: scale(0.94);
+	}
+
+	100% {
+		filter: none;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.player__scene,
+	.player__scene--active,
+	.player__scene--active .reveal {
+		transition: none;
+	}
+
+	.player__scene--active .reveal--press,
+	.player__step-button--active .player__step-bar {
+		animation: none;
+	}
+}
+
+/* --- Форма заявки ------------------------------------------------------- */
+
+.lead-form {
+	width: min(100%, 420px);
+	overflow: hidden;
+	background-color: var(--scene-paper);
+	border-radius: var(--scene-radius);
+	box-shadow: var(--scene-shadow);
+}
+
+.lead-form__bar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 12px 16px;
+	background-color: #efe9dc;
+}
+
+.lead-form__dot {
+	width: 10px;
+	height: 10px;
+	background-color: #d3c9b6;
+	border-radius: 50%;
+}
+
+.lead-form__clock {
+	margin-left: auto;
+	padding: 2px 10px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #fff;
+	background-color: #2b3550;
+	border-radius: 999px;
+}
+
+.lead-form__body {
+	display: flex;
+	flex-direction: column;
+	padding: clamp(18px, 14px + 1vw, 28px);
+}
+
+.lead-form__title {
+	font-family: var(--scene-font-display);
+	font-size: clamp(22px, 19px + 0.8vw, 28px);
+	font-weight: 700;
+	line-height: 1.15;
+}
+
+.lead-form__sub {
+	margin: 4px 0 16px;
+	font-size: 14px;
+	color: var(--scene-muted);
+}
+
+.lead-form__label {
+	margin-bottom: 4px;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--scene-muted);
+}
+
+.lead-form__field {
+	display: block;
+	min-height: 44px;
+	margin-bottom: 12px;
+	padding: 11px 14px;
+	font-size: 15px;
+	line-height: 1.4;
+	background-color: #fff;
+	border: 1px solid var(--scene-line);
+	border-radius: 10px;
+}
+
+.lead-form__field--area {
+	min-height: 72px;
+}
+
+/* Мигающий курсор в поле, которое сейчас «печатается» */
+.lead-form__field--typing::after {
+	content: '';
+	display: inline-block;
+	width: 2px;
+	height: 1.1em;
+	margin-left: 1px;
+	vertical-align: text-bottom;
+	background-color: var(--scene-accent);
+	animation: lead-form-caret 0.8s steps(1) infinite;
+}
+
+@keyframes lead-form-caret {
+	50% {
+		opacity: 0;
+	}
+}
+
+.lead-form__button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 48px;
+	margin-top: 4px;
+	font-weight: 600;
+	color: #fff;
+	background-color: var(--scene-accent);
+	border-radius: 999px;
+}
+
+.lead-form__sent {
+	margin-top: 12px;
+	padding: 10px 14px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+	text-align: center;
+	color: var(--scene-accent);
+	background-color: var(--scene-accent-soft);
+	border-radius: 10px;
+}
+
+/* --- Телефон компактнее, чем в «Отзывах» -------------------------------- */
+
+.phone--compact {
+	width: min(100%, 330px);
+}
+
+.phone--compact .phone__screen {
+	min-height: 500px;
+}
+
+/* --- Карточка заявки в чате бота --------------------------------------- */
+
+.lead-card {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	max-width: 94%;
+}
+
+.lead-card__title {
+	font-weight: 700;
+}
+
+.lead-card__list {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: 4px 10px;
+	margin: 0;
+	font-size: 14px;
+}
+
+.lead-card__key {
+	color: var(--scene-muted);
+}
+
+.lead-card__value {
+	margin: 0;
+	font-weight: 600;
+}
+
+.lead-card__text {
+	font-size: 14px;
+	font-style: italic;
+	color: var(--scene-muted);
+}
+
+.lead-card__actions {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+	max-width: 94%;
+}
+
+.lead-card__action {
+	padding: 9px 8px;
+	font-size: 14px;
+	font-weight: 600;
+	text-align: center;
+	color: var(--scene-accent);
+	background-color: rgba(255, 255, 255, 0.85);
+	border-radius: 10px;
+}
+
+/* --- Календар ----------------------------------------------------------- */
+
+.cal {
+	position: relative;
+	width: min(100%, 420px);
+	padding: clamp(16px, 12px + 1vw, 24px);
+	background-color: var(--scene-paper);
+	border-radius: var(--scene-radius);
+	box-shadow: var(--scene-shadow);
+}
+
+.cal__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.cal__day {
+	font-family: var(--scene-font-display);
+	font-size: 24px;
+	font-weight: 700;
+}
+
+.cal__date {
+	font-size: 13px;
+	color: var(--scene-muted);
+}
+
+.cal__row {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	min-height: 48px;
+	border-top: 1px solid var(--scene-line);
+}
+
+.cal__hour {
+	flex-shrink: 0;
+	width: 52px;
+	padding-top: 4px;
+	font-size: 12px;
+	color: var(--scene-muted);
+}
+
+.cal__event {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-width: 0;
+	margin: 4px 0;
+	padding: 8px 12px;
+	color: #fff;
+	background-color: var(--scene-accent);
+	border-radius: 10px;
+}
+
+.cal__event-title {
+	font-weight: 600;
+}
+
+.cal__event-time {
+	font-size: 13px;
+	opacity: 0.8;
+}
+
+.cal__toast {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-top: 14px;
+	padding: 12px 14px;
+	background-color: #fff4dc;
+	border-left: 4px solid var(--scene-star);
+	border-radius: 10px;
+}
+
+.cal__toast-label {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #8a6414;
+}
+
+.cal__toast-text {
+	font-size: 15px;
+	line-height: 1.45;
+}
+
+/* --- Лист клієнту ------------------------------------------------------- */
+
+.mail {
+	width: min(100%, 420px);
+	overflow: hidden;
+	background-color: var(--scene-paper);
+	border-radius: var(--scene-radius);
+	box-shadow: var(--scene-shadow);
+}
+
+.mail__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 14px 18px;
+	background-color: #efe9dc;
+}
+
+.mail__box {
+	font-family: var(--scene-font-display);
+	font-size: 22px;
+	font-weight: 700;
+}
+
+.mail__count {
+	padding: 2px 10px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #fff;
+	background-color: var(--scene-accent);
+	border-radius: 999px;
+}
+
+.mail__letter {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	gap: 12px;
+	padding: 16px 18px;
+	background-color: #fff;
+	border-bottom: 1px solid var(--scene-line);
+}
+
+.mail__avatar {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	font-size: 14px;
+	font-weight: 700;
+	color: #fff;
+	background-color: var(--scene-accent);
+	border-radius: 50%;
+}
+
+.mail__content {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.mail__from {
+	overflow: hidden;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.mail__subject {
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.mail__text {
+	font-size: 14px;
+	line-height: 1.45;
+	color: var(--scene-muted);
+}
+
+.mail__time {
+	font-size: 12px;
+	color: var(--scene-muted);
+}
+
+.mail__note {
+	margin: 16px 18px 18px;
+	padding: 10px 14px;
+	font-size: 14px;
+	line-height: 1.45;
+	background-color: var(--scene-accent-soft);
+	border-radius: 10px;
+}

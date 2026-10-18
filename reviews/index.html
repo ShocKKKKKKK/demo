@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="uk" data-demo-title="як залишатимуть відгуки">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="noindex, nofollow">
+	<title>Як ваші клієнти залишатимуть відгуки — демо</title>
+	<meta name="description" content="Демонстрація: повідомлення з проханням про відгук, QR-картка на стіл і вікно оцінки.">
+	<meta name="theme-color" content="#1f5a48">
+	<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="../shared/demo.css">
+	<link rel="stylesheet" href="../shared/scene.css">
+	<link rel="stylesheet" href="css/style.css">
+	<script src="../shared/demo.js"></script>
+	<!-- QR-код рисуется на месте; без библиотеки остаётся узор-заглушка -->
+	<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js" defer></script>
+	<script src="../shared/scene.js" defer></script>
+	<script src="js/main.js" defer></script>
+</head>
+<body>
+
+	<div class="demo-ribbon" role="note">
+		<span class="demo-ribbon__text">Демо для <span data-demo="name"></span></span>
+		<span aria-hidden="true">·</span>
+		<a class="demo-ribbon__link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a>
+	</div>
+
+	<div class="wrapper">
+		<main class="wrapper__main">
+
+			<section class="hero">
+				<div class="hero__container">
+					<p class="hero__label"><span data-demo="niche_word"></span><span aria-hidden="true">·</span><span data-demo="city"></span></p>
+					<h1 class="hero__title">Як ваші <span data-demo="niche_client"></span>и залишатимуть відгуки</h1>
+					<p class="hero__lead">
+						Три прості кроки, які показуємо на прикладі <span class="hero__name" data-demo="name"></span>.
+						Людині не треба нічого шукати: посилання в неї вже є, а відгук займає хвилину.
+					</p>
+					<ol class="hero__steps">
+						<li class="hero__step"><a class="hero__step-link" href="#step-1"><span class="hero__step-num">01</span>Кнопка в боті</a></li>
+						<li class="hero__step"><a class="hero__step-link" href="#step-2"><span class="hero__step-num">02</span>QR-картка</a></li>
+						<li class="hero__step"><a class="hero__step-link" href="#review"><span class="hero__step-num">03</span>Відгук</a></li>
+					</ol>
+				</div>
+			</section>
+
+			<!-- Крок 1: кнопка в Telegram-боті → готове повідомлення → переслати клієнту -->
+			<section class="step" aria-labelledby="step-1">
+				<div class="step__container">
+					<div class="step__text">
+						<span class="step__num" aria-hidden="true">01</span>
+						<h2 class="step__title" id="step-1">Після зустрічі — одна кнопка у вашому Telegram</h2>
+						<p class="step__lead">
+							Ви натискаєте «Попросити відгук» у своєму боті — він одразу дає готове повідомлення з посиланням.
+							Пересилаєте його клієнту у Viber чи Telegram одним натисканням.
+						</p>
+						<p class="step__lead">
+							Без ніяковості і без «залиште, будь ласка, десь відгук»: людина отримує подяку і кнопку.
+						</p>
+					</div>
+					<div class="step__scene">
+						<div class="phone">
+							<div class="phone__screen">
+								<div class="phone__status" aria-hidden="true"><span>18:42</span><span>●●● ▮</span></div>
+								<div class="chat">
+									<div class="chat__head">
+										<span class="chat__avatar chat__avatar--bot" aria-hidden="true">Б</span>
+										<span class="chat__who">
+											<span class="chat__name">Ваш бот відгуків</span>
+											<span class="chat__state">бот · бачите тільки ви</span>
+										</span>
+									</div>
+									<div class="chat__body">
+										<span class="chat__day">Сьогодні</span>
+										<div class="chat__bubble chat__bubble--out">
+											Попросити відгук
+											<span class="chat__time">18:42</span>
+										</div>
+										<div class="chat__bubble">
+											<span class="chat__note">Готове повідомлення для клієнта:</span>
+											<span class="chat__quote">
+												Дякую, що звернулися! Якщо консультація була корисною,
+												<span data-demo="grateful"></span> за коротенький відгук — це займе хвилину.
+												<a class="chat__action" href="#review">Залишити відгук <span aria-hidden="true">★</span></a>
+											</span>
+											<span class="chat__time">18:42</span>
+										</div>
+										<div class="chat__buttons">
+											<span class="chat__button">Переслати у Viber</span>
+											<span class="chat__button">Переслати в Telegram</span>
+										</div>
+										<span class="chat__tip">одне натискання</span>
+									</div>
+									<div class="chat__keyboard" aria-hidden="true">
+										<span class="chat__key">Попросити відгук</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Крок 2: QR-картка А6 на стіл -->
+			<section class="step step--reverse step--tint" aria-labelledby="step-2">
+				<div class="step__container">
+					<div class="step__text">
+						<span class="step__num" aria-hidden="true">02</span>
+						<h2 class="step__title" id="step-2">QR-картка на столі</h2>
+						<p class="step__lead">
+							Картка формату А6 на рецепції чи на столі. Людина наводить камеру — і одразу бачить вікно відгуку.
+						</p>
+						<p class="step__lead">Спробуйте: QR на картці справжній і веде до кроку 3.</p>
+					</div>
+					<div class="step__scene">
+						<figure class="qr-card">
+							<span class="qr-card__stars" aria-hidden="true">★★★★★</span>
+							<span class="qr-card__name" data-demo="name"></span>
+							<span class="qr-card__city" data-demo="city"></span>
+							<span class="qr-card__code" data-qr role="img" aria-label="QR-код: посилання на вікно відгуку"></span>
+							<figcaption class="qr-card__caption">Скануйте, щоб залишити відгук</figcaption>
+							<span class="qr-card__hint">Дякуємо, що обрали нас!</span>
+						</figure>
+					</div>
+				</div>
+			</section>
+
+			<!-- Крок 3: вікно оцінки (стилізований макет) -->
+			<section class="step" id="review" aria-labelledby="step-3">
+				<div class="step__container">
+					<div class="step__text">
+						<span class="step__num" aria-hidden="true">03</span>
+						<h2 class="step__title" id="step-3">Оцінка і пара речень</h2>
+						<p class="step__lead">
+							Посилання відкриває одразу вікно відгуку на вашій картці — не треба шукати вас на мапі.
+							Зірки, кілька слів, «Опублікувати».
+						</p>
+					</div>
+					<div class="step__scene">
+						<div class="rate">
+							<form class="rate__form" data-rate novalidate>
+								<p class="rate__title"><span class="rate__ask">Оцініть</span><span data-demo="name"></span></p>
+								<div class="rate__stars" role="radiogroup" aria-label="Оцінка">
+									<button type="button" class="rate__star rate__star--on" role="radio" aria-checked="false" aria-label="1 зірка" data-star="1">★</button>
+									<button type="button" class="rate__star rate__star--on" role="radio" aria-checked="false" aria-label="2 зірки" data-star="2">★</button>
+									<button type="button" class="rate__star rate__star--on" role="radio" aria-checked="false" aria-label="3 зірки" data-star="3">★</button>
+									<button type="button" class="rate__star rate__star--on" role="radio" aria-checked="false" aria-label="4 зірки" data-star="4">★</button>
+									<button type="button" class="rate__star rate__star--on" role="radio" aria-checked="true" aria-label="5 зірок" data-star="5">★</button>
+								</div>
+								<label class="rate__label" for="rate-text">Ваш відгук</label>
+								<textarea class="rate__field" id="rate-text" rows="4" placeholder="Розкажіть, як усе пройшло…"></textarea>
+								<div class="rate__actions">
+									<button type="reset" class="rate__button rate__button--ghost">Скасувати</button>
+									<button type="submit" class="rate__button">Опублікувати</button>
+								</div>
+								<p class="rate__done" data-rate-done hidden>Це демо — у справжньому вікні відгук з'явиться на вашій картці.</p>
+							</form>
+							<p class="rate__note">Так виглядає вікно відгуку в <span translate="no">Google</span> Картах — тут спрощений макет.</p>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="auto" aria-labelledby="auto-title">
+				<div class="auto__container">
+					<h2 class="auto__title" id="auto-title">Що автоматично, а що — одним натисканням</h2>
+					<p class="auto__lead">Чесно: тільки те, що працює без платних сервісів розсилок.</p>
+					<ol class="auto__list">
+						<li class="auto__item">
+							<span class="auto__when">Email — автоматично</span>
+							<p class="auto__text">Якщо клієнт залишив пошту, лист із подякою і посиланням приходить сам після зустрічі, а через 3 дні — одне нагадування.</p>
+						</li>
+						<li class="auto__item">
+							<span class="auto__when"><span translate="no">Telegram</span> — автоматично</span>
+							<p class="auto__text">Якщо клієнт сам написав вашому боту (наприклад, через QR-картку), бот надішле прохання про відгук сам.</p>
+						</li>
+						<li class="auto__item">
+							<span class="auto__when">Viber — одне натискання</span>
+							<p class="auto__text">Писати у Viber автоматично можна лише через платний бізнес-акаунт, тому готове повідомлення пересилаєте ви — це секунда.</p>
+						</li>
+					</ol>
+				</div>
+			</section>
+
+			<section class="cta" aria-labelledby="cta-title">
+				<div class="cta__container">
+					<h2 class="cta__title" id="cta-title">Хочете так само?</h2>
+					<p class="cta__lead">Налаштую бота з готовим повідомленням, QR-картку і листи-нагадування під вас — без платних сервісів.</p>
+					<a class="cta__button" href="https://webdevsergey.com/" target="_blank" rel="noopener">
+						Налаштувати для вас
+						<svg class="cta__arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+					</a>
+				</div>
+			</section>
+
+		</main>
+
+		<footer class="footer">
+			<div class="footer__container">
+				<p class="footer__copy">Демо для <span data-demo="name"></span>, <span data-demo="city"></span></p>
+				<p class="footer__dev">Розробка сайту — <a class="footer__dev-link" href="https://webdevsergey.com/" target="_blank" rel="noopener">webdevsergey.com</a></p>
+			</div>
+		</footer>
+	</div>
+
+</body>
+</html>
