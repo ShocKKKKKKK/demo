@@ -12,6 +12,7 @@
    Метки в разметке:
    data-demo="<поле>"          текст элемента = значение поля;
                                поле *_href (phone_href) — пишется в атрибут href
+   data-demo-default="…"       значение, если поля нет или оно пустое (поля, добавленные позже)
    data-demo-repeat="N"        значение повторяется N раз (разделитель — data-demo-sep, по умолчанию пробел)
    data-demo-if="<поле>"       элемент удаляется, если поля нет или оно пустое
    data-demo-list="services"   список: первый ребёнок — шаблон, клонируется на каждый пункт;
@@ -118,6 +119,8 @@
 				else el.removeAttribute('href');
 				return;
 			}
+			// Поле, которого нет в старых JSON (словарь ниши), — значение по умолчанию из разметки
+			if (!value && el.hasAttribute('data-demo-default')) value = el.getAttribute('data-demo-default');
 			var times = parseInt(el.getAttribute('data-demo-repeat'), 10);
 			if (times > 1 && value) {
 				var sep = el.getAttribute('data-demo-sep') || ' ';

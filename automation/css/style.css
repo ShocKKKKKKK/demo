@@ -3,6 +3,7 @@
    Сцены лежат стопкой в .player__stage, видна активная (.player__scene--active).
    Элементы .reveal внутри появляются с задержкой data-delay (JS пишет её в --delay).
    Общие блоки (hero, phone, chat, auto, cta, footer) — ../shared/scene.css.
+   В конце — секция «Жодне звернення не губиться» и калькулятор (js/flow.js).
    ========================================================================== */
 
 /* --- Проигрыватель ------------------------------------------------------ */
@@ -709,4 +710,797 @@
 	line-height: 1.45;
 	background-color: var(--scene-accent-soft);
 	border-radius: 10px;
+}
+
+/* ==========================================================================
+   Секция «Жодне звернення не губиться» (js/flow.js): телефон клиента, журнал бота,
+   экран администратора и владельца, калькулятор. Движок и .autobar / .typing —
+   ../shared/chat-sim.js и ../shared/chat-sim.css.
+   ========================================================================== */
+
+.flow {
+	--chat-sim-bubble: var(--scene-bubble-in);
+	--chat-sim-dot: var(--scene-muted);
+	--flow-alert: #b4412f;
+	--flow-alert-soft: #fbe7e2;
+	padding: clamp(48px, 30px + 4vw, 104px) 0;
+	background-color: var(--scene-paper);
+	border-top: 1px solid var(--scene-line);
+}
+
+.flow__container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 16px;
+}
+
+.flow__label {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 12px;
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--scene-accent);
+}
+
+.flow__title {
+	max-width: 22ch;
+	margin-bottom: 14px;
+	font-family: var(--scene-font-display);
+	font-size: clamp(28px, 20px + 2vw, 48px);
+	font-weight: 700;
+	line-height: 1.1;
+	text-wrap: balance;
+}
+
+.flow__lead {
+	max-width: 68ch;
+	margin-bottom: clamp(24px, 18px + 1.6vw, 40px);
+	color: var(--scene-muted);
+}
+
+.flow__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 10px;
+	margin-bottom: 18px;
+}
+
+.flow__control {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 8px 16px;
+	overflow: hidden;
+	font-size: 14px;
+	background-color: transparent;
+	border: 1px solid var(--scene-line);
+	border-radius: 999px;
+}
+
+.flow__control--on {
+	color: var(--scene-accent);
+	border-color: var(--scene-accent);
+}
+
+.flow__dot {
+	flex: none;
+	width: 8px;
+	height: 8px;
+	background-color: var(--scene-line);
+	border-radius: 50%;
+}
+
+.flow__control--on .flow__dot {
+	background-color: var(--scene-accent);
+	animation: flow-pulse 1.6s ease-in-out infinite;
+}
+
+.flow__hint {
+	flex: 1 1 260px;
+	font-size: 13px;
+	color: var(--scene-muted);
+}
+
+@media (any-hover: hover) {
+	.flow__control:hover {
+		border-color: var(--scene-accent);
+	}
+}
+
+.flow__stage {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1.25fr);
+	align-items: start;
+	gap: clamp(16px, 8px + 1.4vw, 28px);
+}
+
+.flow__col {
+	min-width: 0;
+}
+
+.flow__caption {
+	margin-bottom: 10px;
+	font-family: var(--scene-font-display);
+	font-size: 19px;
+	font-weight: 700;
+}
+
+.flow__note {
+	margin-top: 16px;
+	font-size: 14px;
+	color: var(--scene-muted);
+}
+
+/* Кнопка, которую сцена ждёт в ручном режиме */
+.flow__target {
+	box-shadow: 0 0 0 2px var(--scene-paper), 0 0 0 4px var(--scene-accent);
+}
+
+@media (max-width: 1099.98px) {
+	.flow__stage {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.flow__col--wide {
+		grid-column: 1 / -1;
+	}
+}
+
+@media (max-width: 719.98px) {
+	.flow__stage {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+@keyframes flow-pulse {
+	50% {
+		opacity: 0.35;
+	}
+}
+
+/* --- Телефон клиента ------------------------------------------------------ */
+
+.sim-chat {
+	display: flex;
+	flex-direction: column;
+	height: 470px;
+	overflow: hidden;
+	background-color: var(--scene-chat);
+	border: 1px solid var(--scene-line);
+	border-radius: var(--scene-radius);
+}
+
+.sim-chat__top {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 14px;
+	background-color: var(--scene-paper);
+	border-bottom: 1px solid var(--scene-line);
+}
+
+.sim-chat__avatar {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 36px;
+	height: 36px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #fff;
+	background-color: #3b6b8a;
+	border-radius: 50%;
+}
+
+.sim-chat__who {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.sim-chat__name {
+	overflow: hidden;
+	font-size: 14px;
+	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.sim-chat__status {
+	font-size: 12px;
+	color: var(--scene-muted);
+}
+
+.sim-chat__body {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 6px;
+	padding: 12px 10px;
+	overflow-y: auto;
+}
+
+.sim-chat__bottom {
+	display: flex;
+	align-items: center;
+	min-height: 56px;
+	padding: 8px;
+	background-color: var(--scene-paper);
+	border-top: 1px solid var(--scene-line);
+}
+
+.sim-chat__input {
+	padding: 0 8px;
+	font-size: 14px;
+	color: var(--scene-muted);
+}
+
+.msg {
+	max-width: 86%;
+	padding: 7px 11px 6px;
+	font-size: 14px;
+	line-height: 1.45;
+	overflow-wrap: anywhere;
+	background-color: var(--scene-bubble-in);
+	border-radius: 12px;
+	box-shadow: 0 1px 1px rgba(28, 35, 32, 0.06);
+	animation: flow-msg-in 0.25s ease-out;
+}
+
+.msg--in {
+	align-self: flex-start;
+	border-bottom-left-radius: 4px;
+}
+
+.msg--out {
+	align-self: flex-end;
+	background-color: var(--scene-bubble-out);
+	border-bottom-right-radius: 4px;
+}
+
+.msg--system {
+	align-self: center;
+	padding: 2px 8px;
+	font-size: 12px;
+	text-align: center;
+	color: var(--scene-muted);
+	background: none;
+	box-shadow: none;
+}
+
+.msg__time {
+	display: block;
+	margin-top: 2px;
+	font-size: 11px;
+	text-align: right;
+	color: var(--scene-muted);
+}
+
+.msg__voice {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.msg__play {
+	position: relative;
+	flex: none;
+	width: 28px;
+	height: 28px;
+	background-color: var(--scene-accent);
+	border-radius: 50%;
+}
+
+.msg__play::after {
+	content: "";
+	position: absolute;
+	top: 8px;
+	left: 11px;
+	border: 6px solid transparent;
+	border-right: 0;
+	border-left: 9px solid #fff;
+}
+
+.msg__wave {
+	width: 110px;
+	max-width: 30vw;
+	height: 18px;
+	background: repeating-linear-gradient(90deg, var(--scene-accent) 0 2px, transparent 2px 5px);
+	opacity: 0.5;
+	clip-path: polygon(0 40%, 10% 10%, 20% 60%, 30% 0, 40% 50%, 50% 20%, 60% 70%, 70% 10%, 80% 40%, 90% 20%, 100% 50%, 100% 100%, 0 100%);
+}
+
+.msg__sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.reply-kb {
+	display: flex;
+	width: 100%;
+}
+
+.reply-kb__key {
+	position: relative;
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 40px;
+	padding: 8px 12px;
+	overflow: hidden;
+	font-size: 13px;
+	text-align: center;
+	background-color: var(--scene-bg);
+	border: 1px solid var(--scene-line);
+	border-radius: 10px;
+}
+
+.reply-kb__key--accent {
+	color: #fff;
+	background-color: var(--scene-accent);
+	border-color: var(--scene-accent);
+}
+
+@keyframes flow-msg-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+}
+
+/* --- Журнал бота ---------------------------------------------------------- */
+
+.bot-log {
+	display: flex;
+	flex-direction: column;
+	height: 470px;
+	padding: 16px;
+	background-color: #1f2a26;
+	border-radius: var(--scene-radius);
+	color: #e6ece9;
+}
+
+.bot-log__head {
+	margin-bottom: 12px;
+	font-size: 13px;
+	color: rgba(230, 236, 233, 0.7);
+}
+
+.bot-log__list {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 8px;
+	overflow-y: auto;
+}
+
+.bot-log__item {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: 10px;
+	padding: 8px 10px;
+	font-size: 14px;
+	line-height: 1.4;
+	background-color: rgba(255, 255, 255, 0.06);
+	border-radius: 10px;
+	animation: flow-msg-in 0.25s ease-out;
+}
+
+.bot-log__time {
+	font-variant-numeric: tabular-nums;
+	color: #f7d58b;
+}
+
+.bot-log__text {
+	overflow-wrap: anywhere;
+}
+
+/* --- Экран администратора и владельца ----------------------------------- */
+
+.desk {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	background-color: var(--scene-bg);
+	border: 1px solid var(--scene-line);
+	border-radius: var(--scene-radius);
+}
+
+.desk__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.desk__title {
+	min-width: 0;
+	overflow: hidden;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.desk__clock {
+	flex: none;
+	padding: 2px 10px;
+	font-size: 14px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	color: #fff;
+	background-color: var(--scene-ink);
+	border-radius: 999px;
+}
+
+.desk__stats {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px;
+	margin: 0;
+}
+
+.desk__stat {
+	padding: 10px 12px;
+	background-color: var(--scene-paper);
+	border: 1px solid var(--scene-line);
+	border-radius: 12px;
+}
+
+.desk__stat-label {
+	font-size: 12px;
+	line-height: 1.3;
+	color: var(--scene-muted);
+}
+
+.desk__stat-value {
+	margin: 0;
+	font-family: var(--scene-font-display);
+	font-size: 28px;
+	font-weight: 700;
+	line-height: 1.1;
+}
+
+.desk__stat--alert .desk__stat-value {
+	color: var(--flow-alert);
+}
+
+.desk__missed {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 44px;
+	padding: 10px 16px;
+	overflow: hidden;
+	font-weight: 600;
+	color: var(--flow-alert);
+	background-color: var(--scene-paper);
+	border: 1px solid var(--flow-alert);
+	border-radius: 12px;
+}
+
+.desk__missed-icon {
+	width: 18px;
+	height: 18px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1.8;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+@media (any-hover: hover) {
+	.desk__missed:hover {
+		background-color: var(--flow-alert-soft);
+	}
+}
+
+.desk__list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.desk__card {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 2px 12px;
+	padding: 10px 12px;
+	background-color: var(--scene-paper);
+	border: 1px solid var(--scene-line);
+	border-left: 4px solid var(--scene-accent);
+	border-radius: 12px;
+	transition: background-color 0.3s, border-color 0.3s;
+}
+
+.desk__card--new {
+	animation: flow-msg-in 0.35s ease-out;
+}
+
+.desk__card--done {
+	border-left-color: var(--scene-line);
+	opacity: 0.75;
+}
+
+.desk__card--late {
+	border-left-color: var(--flow-alert);
+}
+
+.desk__card--overdue {
+	background-color: var(--flow-alert-soft);
+	border-color: var(--flow-alert);
+	border-left-color: var(--flow-alert);
+}
+
+.desk__card-title {
+	min-width: 0;
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.desk__card-meta {
+	grid-column: 1;
+	font-size: 12px;
+	color: var(--scene-muted);
+}
+
+.desk__card-timer {
+	grid-column: 1;
+	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+}
+
+.desk__card--overdue .desk__card-timer {
+	font-weight: 600;
+	color: var(--flow-alert);
+}
+
+.desk__card-button {
+	position: relative;
+	grid-column: 2;
+	grid-row: 1 / span 3;
+	align-self: center;
+	min-height: 36px;
+	padding: 6px 12px;
+	overflow: hidden;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--scene-accent);
+	background-color: var(--scene-accent-soft);
+	border: 0;
+	border-radius: 8px;
+}
+
+.desk__alert {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 12px 14px;
+	color: #fff;
+	background-color: var(--flow-alert);
+	border-radius: 14px;
+	box-shadow: 0 14px 30px -16px rgba(180, 65, 47, 0.9);
+	animation: flow-msg-in 0.3s ease-out;
+}
+
+.desk__alert[hidden],
+.desk__summary[hidden],
+.desk__card-button[hidden] {
+	display: none;
+}
+
+.desk__alert-label {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	opacity: 0.85;
+}
+
+.desk__alert-text {
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.desk__alert-button {
+	position: relative;
+	align-self: flex-start;
+	min-height: 36px;
+	padding: 6px 14px;
+	overflow: hidden;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--flow-alert);
+	background-color: #fff;
+	border: 0;
+	border-radius: 8px;
+}
+
+.desk__alert-button:disabled {
+	opacity: 0.8;
+	cursor: default;
+}
+
+.desk__summary {
+	padding: 12px 14px;
+	color: #e6ece9;
+	background-color: #1f2a26;
+	border-radius: 14px;
+	animation: flow-msg-in 0.3s ease-out;
+}
+
+.desk__summary-title {
+	margin-bottom: 6px;
+	font-weight: 700;
+	color: #f7d58b;
+}
+
+.desk__summary-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 14px;
+}
+
+.desk__summary-item {
+	overflow-wrap: anywhere;
+}
+
+@media (max-width: 719.98px) {
+	.sim-chat,
+	.bot-log {
+		height: 400px;
+	}
+}
+
+@media (max-width: 379.98px) {
+	.desk {
+		padding: 12px;
+	}
+
+	.desk__stat {
+		padding: 8px;
+	}
+
+	.desk__stat-value {
+		font-size: 22px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.flow__control--on .flow__dot,
+	.msg,
+	.bot-log__item,
+	.desk__card--new,
+	.desk__alert,
+	.desk__summary {
+		animation: none;
+	}
+}
+
+/* --- Калькулятор ---------------------------------------------------------- */
+
+.calc {
+	margin-top: clamp(40px, 28px + 3vw, 72px);
+	padding: clamp(20px, 14px + 1.6vw, 36px);
+	background-color: var(--scene-bg);
+	border: 1px solid var(--scene-line);
+	border-radius: var(--scene-radius);
+}
+
+.calc__title {
+	margin-bottom: 8px;
+	font-family: var(--scene-font-display);
+	font-size: clamp(22px, 18px + 1vw, 32px);
+	font-weight: 700;
+	line-height: 1.15;
+}
+
+.calc__lead {
+	margin-bottom: 20px;
+	color: var(--scene-muted);
+}
+
+.calc__fields {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 16px;
+	margin-bottom: 20px;
+}
+
+.calc__field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.calc__label {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.calc__input {
+	width: 100%;
+	min-height: 48px;
+	padding: 10px 12px;
+	font-size: 18px;
+	font-variant-numeric: tabular-nums;
+	background-color: var(--scene-paper);
+	border: 1px solid var(--scene-line);
+	border-radius: 10px;
+}
+
+.calc__input:focus-visible {
+	outline: 2px solid var(--scene-accent);
+	outline-offset: 1px;
+}
+
+.calc__hint {
+	font-size: 12px;
+	color: var(--scene-muted);
+}
+
+.calc__result {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 18px 20px;
+	color: #f1f4f2;
+	background-color: var(--scene-accent);
+	border-radius: 16px;
+}
+
+.calc__result-label {
+	font-size: 14px;
+	opacity: 0.8;
+}
+
+.calc__result-value {
+	font-family: var(--scene-font-display);
+	font-size: clamp(30px, 22px + 2vw, 48px);
+	font-weight: 700;
+	line-height: 1.1;
+	overflow-wrap: anywhere;
+}
+
+.calc__result-formula {
+	font-size: 14px;
+	opacity: 0.8;
+}
+
+.calc__result-rate {
+	margin-top: 6px;
+	font-size: 16px;
+}
+
+.calc__note {
+	margin-top: 10px;
+	font-size: 13px;
+	color: var(--scene-muted);
+}
+
+@media (max-width: 899.98px) {
+	.calc__fields {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 479.98px) {
+	.calc__fields {
+		grid-template-columns: minmax(0, 1fr);
+	}
 }

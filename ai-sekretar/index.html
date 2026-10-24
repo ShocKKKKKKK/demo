@@ -12,7 +12,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/demo.css">
+<link rel="stylesheet" href="../shared/chat-sim.css">
 <script src="../shared/demo.js"></script>
+<script src="../shared/chat-sim.js"></script>
 <style>
 :root {
   --bg: #f3f1ec;
@@ -38,6 +40,9 @@
   --demo-accent: var(--accent);
   --demo-accent-fg: var(--surface);
   --demo-font-label: var(--font-ui);
+  /* «друкує…» из shared/chat-sim.css */
+  --chat-sim-bubble: var(--bubble-in);
+  --chat-sim-dot: var(--muted);
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -110,12 +115,7 @@ input, textarea { font: inherit; color: inherit; }
 .scenarios__auto--on { color: var(--accent); border-color: var(--accent); }
 .scenarios__auto--on .scenarios__auto-dot { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
 
-/* Progress bar on the button autoplay is about to press */
-.autobar {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
-  background: currentColor; opacity: .55; transform-origin: left center; transform: scaleX(0); pointer-events: none;
-}
-.autobar--static { transform: none; opacity: .35; }
+/* Полоса автонажатия (.autobar) и «друкує…» (.typing) — shared/chat-sim.css */
 
 /* Stage: two phones */
 .stage { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
@@ -178,11 +178,6 @@ input, textarea { font: inherit; color: inherit; }
 .phone-form__input { flex: 1; min-width: 0; min-height: 44px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--surface); font-size: 15px; }
 .phone-form__send { border: 0; border-radius: 8px; padding: 0 14px; min-height: 44px; background: var(--accent); color: var(--surface); font-weight: 500; }
 
-.typing { align-self: flex-start; background: var(--bubble-in); border-radius: 12px; padding: 10px 12px; display: flex; gap: 4px; }
-.typing__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typing 1s infinite; }
-.typing__dot:nth-child(2) { animation-delay: .15s; }
-.typing__dot:nth-child(3) { animation-delay: .3s; }
-
 /* Lawyer card inside chat */
 .card-msg { max-width: 92%; white-space: normal; }
 .card-msg__head { font-weight: 600; margin-bottom: 4px; }
@@ -237,7 +232,6 @@ input, textarea { font: inherit; color: inherit; }
 .picker__back { border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 40px; background: none; font-size: 13px; }
 
 @keyframes msg-in { from { opacity: 0; transform: translateY(6px); } }
-@keyframes typing { 50% { opacity: .3; } }
 @keyframes pulse { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) {
   .msg { animation: none; }
@@ -403,6 +397,7 @@ input, textarea { font: inherit; color: inherit; }
    Автопоказ: сценарий идёт сам (labor → military → critical → labor …). Любой клик посетителя
    по кнопке выключает автопоказ до «Почати знову» или переключателя «Автопоказ».
    Данные лида — через shared/demo.js (<html data-demo-optional>: без ?d= — вымышленные значения).
+   Автопоказ, пузыри и «друкує…» — общий движок shared/chat-sim.js.
    ========================================================================== */
 
 // Темп автопоказа, мс
@@ -429,11 +424,7 @@ const clientBottom = $('client-bottom');
 const lawyerBody = $('lawyer-body');
 const lawyerBottom = $('lawyer-bottom');
 const clientStatus = $('client-status');
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const time = () => new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const { reduceMotion, sleep, time, esc } = window.ChatSim;
 // [плейсхолдер] в тексте бота — подсвеченное место под данные адвоката
 const fmt = (s) => esc(s).replace(/\[([^\]]+)\]/g, '<span class="msg__placeholder">$1</span>');
 
@@ -560,111 +551,31 @@ function buildScenarios() {
 
 let SC = {};
 
-/* --- Автопоказ ----------------------------------------------------------- */
+/* --- Автопоказ (shared/chat-sim.js) ------------------------------------- */
 
-let auto = true;
-let autoHook = null;  // ожидающее автодействие; запускается снова, если автопоказ включили
-let autoSeq = 0;      // смена — отмена текущего ожидания
 let runId = 0;
 let current = 'labor';
 
-// Ждёт ms «видимого» времени, пока включён автопоказ; вкладка скрыта — время стоит
-function autoWait(ms, onTick) {
-  const seq = autoSeq;
-  const run = runId;
-  return new Promise((resolve) => {
-    let elapsed = 0;
-    let last = performance.now();
-    const tick = () => {
-      const now = performance.now();
-      if (!auto || seq !== autoSeq || run !== runId) return resolve(false);
-      if (!document.hidden) elapsed += Math.min(now - last, 200);
-      last = now;
-      if (onTick) onTick(Math.min(elapsed / ms, 1));
-      if (elapsed >= ms) return resolve(true);
-      setTimeout(tick, 40);
-    };
-    tick();
-  });
-}
-
-function scheduleAuto(job) {
-  autoHook = job;
-  if (auto) startHook();
-}
-
-function startHook() {
-  if (!autoHook) return;
-  autoSeq++;
-  autoHook();
-}
-
-function setAuto(on) {
-  auto = on;
-  autoSeq++;
-  const btn = $('auto-toggle');
-  btn.classList.toggle('scenarios__auto--on', on);
-  btn.setAttribute('aria-pressed', String(on));
-  $('auto-label').textContent = on ? 'Автопоказ ⏸' : 'Автопоказ ▶';
-  $('client-hint').textContent = on
-    ? 'Діалог іде сам. Натисніть будь-яку кнопку, і далі керуєте ви.'
-    : 'Натискайте кнопки, щоб відповідати за клієнта.';
-  if (on) startHook();
-}
-
-// «Нажать» кнопку после паузы с полосой прогресса. target — элемент или функция, его находящая
-function autoPress(target, ms) {
-  const find = typeof target === 'function' ? target : () => target;
-  const run = runId;
-  scheduleAuto(async function job() {
-    const seq = autoSeq;
-    let el = find();
-    while ((!el || el.disabled) && auto && seq === autoSeq && run === runId && autoHook === job) {
-      await sleep(150);
-      el = find();
-    }
-    if (!el || el.disabled || seq !== autoSeq || autoHook !== job) return;
-    const bar = document.createElement('span');
-    bar.className = 'autobar' + (reduceMotion.matches ? ' autobar--static' : '');
-    el.appendChild(bar);
-    const ok = await autoWait(ms, (p) => { if (!reduceMotion.matches) bar.style.transform = `scaleX(${p})`; });
-    bar.remove();
-    if (!ok || autoHook !== job || !el.isConnected || el.disabled) return;
-    autoHook = null;
-    el.click();
-  });
-}
-
-// Пауза автопоказа (промис выполняется только при включённом автопоказе)
-function autoPause(ms) {
-  return new Promise((resolve) => scheduleAuto(async function job() {
-    const ok = await autoWait(ms);
-    if (!ok || autoHook !== job) return;
-    autoHook = null;
-    resolve();
-  }));
-}
-
-// Ждёт условие; false — сценарий сменился
-function waitFor(cond, run) {
-  return new Promise((resolve) => {
-    const tick = () => {
-      if (run !== runId) return resolve(false);
-      if (cond()) return resolve(true);
-      setTimeout(tick, 100);
-    };
-    tick();
-  });
-}
-
 // Клик посетителя по любой кнопке демо (или строке панели) — ручной режим
-document.addEventListener('click', (e) => {
-  if (!e.isTrusted || !auto) return;
-  const el = e.target.closest('button, .cases__row');
-  if (!el || el.closest('[data-auto-keep]')) return;
-  setAuto(false);
-}, true);
-document.addEventListener('input', (e) => { if (e.isTrusted && auto) setAuto(false); }, true);
+const sim = window.ChatSim.create({
+  root: document,
+  manual: 'button, .cases__row',
+  getRun: () => runId,
+  tempo: TEMPO,
+  onAuto(on) {
+    const btn = $('auto-toggle');
+    btn.classList.toggle('scenarios__auto--on', on);
+    btn.setAttribute('aria-pressed', String(on));
+    $('auto-label').textContent = on ? 'Автопоказ ⏸' : 'Автопоказ ▶';
+    $('client-hint').textContent = on
+      ? 'Діалог іде сам. Натисніть будь-яку кнопку, і далі керуєте ви.'
+      : 'Натискайте кнопки, щоб відповідати за клієнта.';
+  },
+});
+const setAuto = (on) => sim.setAuto(on);
+const autoPress = (target, ms) => sim.press(target, ms);
+const autoPause = (ms) => sim.pause(ms);
+const waitFor = (cond, run) => sim.waitFor(cond, run);
 
 /* --- Состояние текущего сценария ---------------------------------------- */
 
@@ -678,16 +589,8 @@ function freshState() {
   };
 }
 
-function scrollDown(body) { body.scrollTop = body.scrollHeight; }
-
-function addMsg(body, cls, html) {
-  const el = document.createElement('div');
-  el.className = 'msg ' + cls;
-  el.innerHTML = html;
-  body.appendChild(el);
-  scrollDown(body);
-  return el;
-}
+const scrollDown = (body) => sim.scrollDown(body);
+const addMsg = (body, cls, html) => sim.addMsg(body, cls, html);
 
 function log(who, text) { LOG.push({ who, text }); }
 
@@ -819,17 +722,7 @@ async function askOtherPhone(resolve) {
   renderClientBottom();
 }
 
-async function botTyping(ms) {
-  clientStatus.textContent = 'друкує…';
-  const t = document.createElement('div');
-  t.className = 'typing';
-  t.innerHTML = '<span class="typing__dot"></span><span class="typing__dot"></span><span class="typing__dot"></span>';
-  clientBody.appendChild(t);
-  scrollDown(clientBody);
-  await sleep(ms);
-  t.remove();
-  clientStatus.textContent = 'бот';
-}
+const botTyping = (ms) => sim.typing(clientBody, ms, clientStatus, 'бот');
 
 /* --- Карточка адвокату --------------------------------------------------- */
 
@@ -1257,8 +1150,7 @@ async function autoFinale(name, run) {
 
 async function play(name) {
   const run = ++runId;
-  autoHook = null;
-  autoSeq++;
+  sim.reset();
   current = name;
   markScenario(name);
   const sc = SC[name];
@@ -1307,7 +1199,7 @@ async function play(name) {
     renderLive();
   }
 
-  if (auto && !(await autoFinale(name, run))) return;
+  if (sim.auto && !(await autoFinale(name, run))) return;
   await autoPause(TEMPO.next);
   if (run !== runId) return;
   play(ORDER[(ORDER.indexOf(name) + 1) % ORDER.length]);
@@ -1322,7 +1214,7 @@ document.addEventListener('click', (e) => {
   if ((b = on('.header__tab'))) return showView(b.dataset.view);
   if ((b = on('.scenarios__btn'))) return play(b.dataset.scenario);
   if (on('#restart')) { setAuto(true); return play(current); }
-  if (on('#auto-toggle')) return setAuto(!auto);
+  if (on('#auto-toggle')) return setAuto(!sim.auto);
   if ((b = on('[data-filter]'))) { filter = b.dataset.filter; return renderPanel(); }
   if ((b = on('.cases__row'))) return renderCase(Number(b.dataset.id));
   if (!S) return;

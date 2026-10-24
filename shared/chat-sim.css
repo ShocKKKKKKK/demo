@@ -1,0 +1,64 @@
+/* ==========================================================================
+   Общие блоки чат-симуляторов (shared/chat-sim.js): полоса автонажатия и «друкує…».
+   Цвета — из переменных страницы:
+   --chat-sim-bubble  фон пузыря «друкує…»
+   --chat-sim-dot     цвет точек
+   Кнопка, на которую ставится полоса, должна быть position: relative и overflow: hidden.
+   ========================================================================== */
+
+/* Полоса на кнопке, которую автопоказ сейчас «нажмёт» */
+.autobar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 3px;
+	background: currentColor;
+	opacity: .55;
+	transform-origin: left center;
+	transform: scaleX(0);
+	pointer-events: none;
+}
+
+.autobar--static {
+	transform: none;
+	opacity: .35;
+}
+
+/* «друкує…» бота */
+.typing {
+	align-self: flex-start;
+	display: flex;
+	gap: 4px;
+	padding: 10px 12px;
+	background: var(--chat-sim-bubble, #fff);
+	border-radius: 12px;
+}
+
+.typing__dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--chat-sim-dot, #6a6f76);
+	animation: chat-sim-typing 1s infinite;
+}
+
+.typing__dot:nth-child(2) {
+	animation-delay: .15s;
+}
+
+.typing__dot:nth-child(3) {
+	animation-delay: .3s;
+}
+
+@keyframes chat-sim-typing {
+	50% {
+		opacity: .3;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.typing__dot {
+		animation: none;
+	}
+}

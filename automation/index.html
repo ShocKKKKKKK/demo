@@ -10,10 +10,13 @@
 	<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 	<link rel="stylesheet" href="../shared/demo.css">
 	<link rel="stylesheet" href="../shared/scene.css">
+	<link rel="stylesheet" href="../shared/chat-sim.css">
 	<link rel="stylesheet" href="css/style.css">
 	<script src="../shared/demo.js"></script>
+	<script src="../shared/chat-sim.js"></script>
 	<script src="../shared/scene.js" defer></script>
 	<script src="js/main.js" defer></script>
+	<script src="js/flow.js" defer></script>
 </head>
 <body>
 
@@ -113,7 +116,7 @@
 										<span class="lead-form__label">Email (необов'язково)</span>
 										<span class="lead-form__field" data-type="maryna@example.com" data-type-at="2200"></span>
 										<span class="lead-form__label">Ситуація</span>
-										<span class="lead-form__field lead-form__field--area" data-type="Потрібна консультація. Зручно завтра після 12:00." data-type-at="3300"></span>
+										<span class="lead-form__field lead-form__field--area" data-type="Хочу записатися. Зручно завтра після 12:00." data-type-at="3300"></span>
 										<span class="lead-form__button reveal reveal--press" data-delay="6000">Надіслати</span>
 										<span class="lead-form__sent reveal" data-delay="6600">Дякуємо! <span data-demo="name"></span> зв'яжеться завтра до 10:00.</span>
 									</div>
@@ -141,10 +144,10 @@
 														<dt class="lead-card__key">Ім'я</dt><dd class="lead-card__value">Марина</dd>
 														<dt class="lead-card__key">Телефон</dt><dd class="lead-card__value">067 000 00 00</dd>
 														<dt class="lead-card__key">Email</dt><dd class="lead-card__value">maryna@example.com</dd>
-														<dt class="lead-card__key">Тип справи</dt><dd class="lead-card__value">консультація</dd>
+														<dt class="lead-card__key">Що потрібно</dt><dd class="lead-card__value">запис</dd>
 														<dt class="lead-card__key">Коли зручно</dt><dd class="lead-card__value">завтра після 12:00</dd>
 													</dl>
-													<span class="lead-card__text">«Потрібна консультація. Зручно завтра після 12:00.»</span>
+													<span class="lead-card__text">«Хочу записатися. Зручно завтра після 12:00.»</span>
 													<span class="chat__time">21:47</span>
 												</div>
 												<div class="lead-card__actions reveal" data-delay="1400">
@@ -205,7 +208,7 @@
 									</ul>
 									<div class="cal__toast reveal" data-delay="2000">
 										<span class="cal__toast-label">Лист-нагадування клієнту за день</span>
-										<span class="cal__toast-text">«Нагадуємо: завтра о 14:00 консультація. До зустрічі! — <span data-demo="name"></span>»</span>
+										<span class="cal__toast-text">«Нагадуємо: ви записані на завтра о 14:00. До зустрічі! — <span data-demo="name"></span>»</span>
 									</div>
 								</div>
 							</div>
@@ -219,6 +222,135 @@
 							Програти ще раз
 						</button>
 					</div>
+				</div>
+			</section>
+
+			<section class="flow" id="flow" aria-labelledby="flow-title">
+				<div class="flow__container">
+					<p class="flow__label"><span data-demo="niche_word"></span><span aria-hidden="true">·</span><span data-demo="city"></span></p>
+					<h2 class="flow__title" id="flow-title">Жодне звернення не губиться</h2>
+					<p class="flow__lead">
+						Повідомлення в <span translate="no">Telegram</span>-бот одразу отримує відповідь, адміністратор бачить картку з таймером,
+						а якщо ніхто не відповів — нагадування приходить власнику. Пропущений дзвінок адміністратор позначає кнопкою,
+						і далі так само працюють таймер і нагадування. Увечері — короткий підсумок дня.
+					</p>
+
+					<div class="flow__sim" data-flow>
+						<div class="flow__bar">
+							<button type="button" class="flow__control" data-flow-restart data-auto-keep>Почати знову</button>
+							<button type="button" class="flow__control flow__control--auto flow__control--on" data-flow-auto aria-pressed="true" data-auto-keep>
+								<span class="flow__dot" aria-hidden="true"></span><span data-flow-auto-label>Автопоказ ⏸</span>
+							</button>
+							<button type="button" class="flow__control" data-flow-skip>Пропустити</button>
+							<p class="flow__hint" data-flow-hint>Сцена йде сама. Натисніть будь-яку кнопку, і далі керуєте ви.</p>
+						</div>
+
+						<div class="flow__stage">
+							<div class="flow__col">
+								<h3 class="flow__caption">Телефон клієнта</h3>
+								<div class="sim-chat">
+									<div class="sim-chat__top">
+										<span class="sim-chat__avatar" data-initials aria-hidden="true"></span>
+										<span class="sim-chat__who">
+											<span class="sim-chat__name"><span data-demo="name"></span> · бот</span>
+											<span class="sim-chat__status" data-flow-status>бот</span>
+										</span>
+									</div>
+									<div class="sim-chat__body" data-flow-client aria-live="polite"></div>
+									<div class="sim-chat__bottom" data-flow-keys><span class="sim-chat__input">Повідомлення</span></div>
+								</div>
+							</div>
+
+							<div class="flow__col">
+								<h3 class="flow__caption">Бот</h3>
+								<div class="bot-log">
+									<p class="bot-log__head">Що робить бот, поки ніхто не дивиться</p>
+									<ol class="bot-log__list" data-flow-log aria-live="polite"></ol>
+								</div>
+							</div>
+
+							<div class="flow__col flow__col--wide">
+								<h3 class="flow__caption">Екран адміністратора і власника</h3>
+								<div class="desk">
+									<div class="desk__head">
+										<span class="desk__title"><span data-demo="name"></span></span>
+										<span class="desk__clock" data-flow-clock>14:05</span>
+									</div>
+									<dl class="desk__stats">
+										<div class="desk__stat"><dt class="desk__stat-label">Звернень сьогодні</dt><dd class="desk__stat-value" data-flow-stat="total">0</dd></div>
+										<div class="desk__stat"><dt class="desk__stat-label">Відповіли</dt><dd class="desk__stat-value" data-flow-stat="answered">0</dd></div>
+										<div class="desk__stat desk__stat--alert"><dt class="desk__stat-label">Прострочено</dt><dd class="desk__stat-value" data-flow-stat="overdue">0</dd></div>
+									</dl>
+									<div class="desk__alert" data-flow-alert hidden>
+										<span class="desk__alert-label">Нагадування власнику</span>
+										<span class="desk__alert-text" data-flow-alert-text></span>
+										<button type="button" class="desk__alert-button" data-flow-callback>Передзвонив</button>
+									</div>
+									<div class="desk__summary" data-flow-summary hidden>
+										<p class="desk__summary-title">Підсумок дня · 19:00</p>
+										<ul class="desk__summary-list" data-flow-summary-list></ul>
+									</div>
+									<button type="button" class="desk__missed" data-flow-missed>
+										<svg class="desk__missed-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2zM15 3l6 6M21 3l-6 6"/></svg>
+										Пропущений дзвінок
+									</button>
+									<ul class="desk__list" data-flow-cards aria-live="polite"></ul>
+								</div>
+							</div>
+						</div>
+
+						<p class="flow__note">Це демонстрація сценарію, а не запис реальної роботи. Імена й номери вигадані.</p>
+
+						<!-- Тексты сценария: слова ниши подставляет shared/demo.js, скрипт читает готовый текст -->
+						<div class="flow__script" hidden>
+							<p data-line="client-first">Добрий день! Можна дізнатися детальніше?</p>
+							<p data-line="bot-greet">Добрий день! Дякуємо, що написали. Підкажіть, будь ласка, <span data-demo="niche_ask" data-demo-default="що вас цікавить"></span>.</p>
+							<p data-line="client-voice">Голосове повідомлення</p>
+							<p data-line="bot-handoff">Дякую! Передала адміністратору, вам скоро відповідять.</p>
+							<p data-line="unit"><span data-demo="niche_unit" data-demo-default="замовлення"></span></p>
+							<p data-line="client-name">Марина</p>
+							<p data-line="call-title">Пропущений дзвінок · 067 ••• •• 18</p>
+							<p data-line="log-answer">Відповів одразу і запитав: <span data-demo="niche_ask" data-demo-default="що вас цікавить"></span></p>
+							<p data-line="log-card">Створив картку для адміністратора, таймер 15 хв</p>
+							<p data-line="log-missed">Адміністратор позначив пропущений дзвінок — таймер 15 хв</p>
+							<p data-line="log-overdue">15 хв без відповіді — картка підсвічена, адміністратору нагадування</p>
+							<p data-line="log-owner">20 хв без відповіді — нагадування власнику</p>
+							<p data-line="log-summary">Надіслав вечірній підсумок</p>
+							<p data-line="alert">Звернення без відповіді вже 20 хв</p>
+						</div>
+					</div>
+
+					<form class="calc" data-calc aria-labelledby="calc-title" novalidate>
+						<h3 class="calc__title" id="calc-title">Скільки може коштувати звернення без відповіді</h3>
+						<p class="calc__lead">Порахуйте на своїх цифрах. Значення в полях — лише приклад, підставте свої.</p>
+						<div class="calc__fields">
+							<label class="calc__field">
+								<span class="calc__label">Звернень на день</span>
+								<input class="calc__input" type="number" inputmode="numeric" data-calc-input="perDay" data-calc-min="1" data-calc-max="500" data-calc-step="1" data-calc-default="10">
+							</label>
+							<label class="calc__field">
+								<span class="calc__label">З них лишаються без відповіді</span>
+								<input class="calc__input" type="number" inputmode="numeric" data-calc-input="missed" data-calc-min="0" data-calc-max="500" data-calc-step="1" data-calc-default="2">
+							</label>
+							<label class="calc__field">
+								<span class="calc__label">Середній чек, грн</span>
+								<input class="calc__input" type="number" inputmode="numeric" data-calc-input="check" data-calc-min="0" data-calc-max="1000000" data-calc-step="50" data-calc-default="1000" data-calc-from="niche_check">
+								<span class="calc__hint">Це орієнтир — підставте свій.</span>
+							</label>
+							<label class="calc__field">
+								<span class="calc__label">З них стали б замовленням, %</span>
+								<input class="calc__input" type="number" inputmode="numeric" data-calc-input="rate" data-calc-min="0" data-calc-max="100" data-calc-step="5" data-calc-default="30">
+								<span class="calc__hint">Не кожне звернення стає замовленням.</span>
+							</label>
+						</div>
+						<output class="calc__result" data-calc-result aria-live="polite">
+							<span class="calc__result-label">Можлива втрата за місяць</span>
+							<span class="calc__result-value"><span data-calc-out="loss">0</span> грн</span>
+							<span class="calc__result-formula"><span data-calc-out="missed">0</span> без відповіді × <span data-calc-out="check">0</span> грн × 30 днів</span>
+							<span class="calc__result-rate">Якщо замовленням стали б <span data-calc-out="rate">0</span>% — це близько <span data-calc-out="real">0</span> грн на місяць.</span>
+						</output>
+						<p class="calc__note">Це оцінка на ваших цифрах, а не обіцянка результату.</p>
+					</form>
 				</div>
 			</section>
 
