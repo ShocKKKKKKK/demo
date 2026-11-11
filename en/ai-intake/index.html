@@ -1,0 +1,1220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>AI Intake Assistant for Law Firms — demo</title>
+<meta name="description" content="Demo: a Telegram bot interviews the client and the attorney gets a ready case card.">
+<meta name="theme-color" content="#1f4e5f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f4e5f'/%3E%3Cpath d='M7 16.5 24.5 9l-3 15-5.2-4.2-3 2.7.4-4.4 7.3-6.6-9 5.5z' fill='%23f3f1ec'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../shared/demo.css">
+<link rel="stylesheet" href="../../shared/chat-sim.css">
+<script src="../../shared/chat-sim.js"></script>
+<style>
+:root {
+  --bg: #f3f1ec;
+  --surface: #fffefb;
+  --surface-2: #ebe8e1;
+  --line: #d9d4ca;
+  --text: #1c1f23;
+  --muted: #6a6f76;
+  --accent: #1f4e5f;
+  --accent-soft: #dbe6e9;
+  --bubble-in: #ffffff;
+  --bubble-out: #dcebe3;
+  --bubble-lawyer: #f6ecd9;
+  --lawyer: #9a6a1c;
+  --chat-bg: #e4e0d6;
+  --critical: #a3302a;
+  --high: #b86b14;
+  --medium: #8a7a1c;
+  --low: #4f6b55;
+  --font-ui: "IBM Plex Sans", system-ui, sans-serif;
+  --font-head: "Source Serif 4", Georgia, serif;
+  /* Лента «Демо для …» из shared/demo.css */
+  --demo-accent: var(--accent);
+  --demo-accent-fg: var(--surface);
+  --demo-font-label: var(--font-ui);
+  /* «друкує…» из shared/chat-sim.css */
+  --chat-sim-bubble: var(--bubble-in);
+  --chat-sim-dot: var(--muted);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171a;
+    --surface: #1c2024;
+    --surface-2: #252a2f;
+    --line: #333a41;
+    --text: #e7e4dd;
+    --muted: #949aa1;
+    --accent: #7fb2c2;
+    --accent-soft: #23353c;
+    --bubble-in: #252a2f;
+    --bubble-out: #23382f;
+    --bubble-lawyer: #3a3022;
+    --lawyer: #e0b46a;
+    --chat-bg: #111416;
+    --critical: #e0675f;
+    --high: #e09a4a;
+    --medium: #cdbb55;
+    --low: #84a98b;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; position: relative; overflow: hidden; }
+button:disabled { cursor: default; }
+input, textarea { font: inherit; color: inherit; }
+.wrapper { min-height: 100%; display: flex; flex-direction: column; overflow: clip; padding-top: var(--demo-ribbon-h, 0px); }
+.wrapper > * { min-width: 0; }
+
+/* Header */
+.header { border-bottom: 1px solid var(--line); background: var(--surface); }
+.header__inner {
+  max-width: 1240px; margin: 0 auto; padding: 14px 16px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
+}
+.header__brand { font-family: var(--font-head); font-size: 20px; font-weight: 600; margin: 0; }
+.header__note { color: var(--muted); font-size: 13px; margin: 0; }
+.header__tabs { margin-left: auto; display: flex; gap: 4px; background: var(--surface-2); padding: 3px; border-radius: 8px; }
+.header__tab { border: 0; background: none; padding: 7px 14px; border-radius: 6px; font-size: 14px; color: var(--muted); }
+.header__tab--active { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
+
+/* Main */
+.main { flex: 1; max-width: 1240px; width: 100%; margin: 0 auto; padding: 20px 16px 32px; }
+.view { display: none; }
+.view--active { display: block; }
+
+/* Scenario picker + autoplay toggle */
+.scenarios { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
+.scenarios__label { color: var(--muted); font-size: 13px; margin-right: 4px; }
+.scenarios__btn {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 6px 14px; font-size: 14px;
+}
+.scenarios__btn--active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.scenarios__restart { border: 0; background: none; color: var(--accent); font-size: 14px; padding: 6px 4px; text-decoration: underline; text-underline-offset: 3px; }
+.scenarios__auto {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line); background: none; border-radius: 999px;
+  padding: 5px 12px; font-size: 13px; color: var(--muted);
+}
+.scenarios__auto-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); flex: none; }
+.scenarios__auto--on { color: var(--accent); border-color: var(--accent); }
+.scenarios__auto--on .scenarios__auto-dot { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
+
+/* Полоса автонажатия (.autobar) и «друкує…» (.typing) — shared/chat-sim.css */
+
+/* Stage: two phones */
+.stage { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+@media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+.stage__caption { font-family: var(--font-head); font-size: 17px; margin: 0 0 8px; }
+.stage__hint { color: var(--muted); font-size: 13px; margin: -4px 0 10px; }
+
+/* Chat (Telegram-like) */
+.chat {
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  display: flex; flex-direction: column; height: min(680px, 82dvh); background: var(--chat-bg);
+}
+.chat__top { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.chat__who { min-width: 0; }
+.chat__avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; background: var(--accent); color: var(--surface);
+  font-family: var(--font-head); font-weight: 600; font-size: 14px;
+}
+.chat__name { margin: 0; font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat__status { margin: 0; font-size: 12px; color: var(--muted); }
+.chat__body { flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+.chat__bottom { padding: 8px; background: var(--surface); border-top: 1px solid var(--line); min-height: 52px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chat__input { flex: 1; color: var(--muted); font-size: 14px; padding: 0 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.msg { max-width: 82%; padding: 7px 11px 6px; border-radius: 12px; background: var(--bubble-in); box-shadow: 0 1px 1px rgb(0 0 0 / .06); white-space: pre-line; overflow-wrap: anywhere; animation: msg-in .25s ease-out; }
+.msg--out { align-self: flex-end; background: var(--bubble-out); border-bottom-right-radius: 4px; }
+.msg--in { align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg--lawyer { background: var(--bubble-lawyer); border-left: 3px solid var(--lawyer); }
+.msg--wide { max-width: 100%; width: 100%; white-space: normal; }
+.msg--system { align-self: center; background: none; box-shadow: none; color: var(--muted); font-size: 12px; padding: 2px 8px; text-align: center; }
+.msg__time { display: block; text-align: right; font-size: 11px; color: var(--muted); margin-top: 2px; }
+.msg__meta { display: block; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+.msg__sign { display: block; font-size: 12px; font-weight: 600; color: var(--lawyer); margin-bottom: 3px; }
+.msg__placeholder { border-bottom: 1px dashed currentColor; color: var(--accent); }
+.msg__voice { display: flex; align-items: center; gap: 8px; }
+.msg__play { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); flex: none; position: relative; }
+.msg__play::after { content: ""; position: absolute; left: 12px; top: 9px; border: 6px solid transparent; border-left: 9px solid var(--surface); border-right: 0; }
+.msg__wave { height: 18px; width: 120px; max-width: 40vw; background: repeating-linear-gradient(90deg, var(--accent) 0 2px, transparent 2px 5px); opacity: .5; clip-path: polygon(0 40%, 10% 10%, 20% 60%, 30% 0, 40% 50%, 50% 20%, 60% 70%, 70% 10%, 80% 40%, 90% 20%, 100% 50%, 100% 100%, 0 100%); }
+.msg__photo { width: 200px; max-width: 100%; aspect-ratio: 3 / 4; border-radius: 8px; background: #fbfaf6; color: #333; padding: 14px 12px; font-size: 9px; line-height: 1.5; display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); }
+.msg__photo-title { font-family: var(--font-head); font-size: 12px; text-align: center; font-weight: 600; }
+.msg__photo-line { height: 4px; background: #d6d2c8; border-radius: 2px; }
+.msg__photo-line--short { width: 60%; }
+.msg__contact { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.msg__keyboard { display: grid; gap: 4px; margin-top: 6px; }
+.msg__keyboard--two { grid-template-columns: 1fr 1fr; }
+.msg__key { border: 0; border-radius: 6px; padding: 7px 8px; min-height: 36px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 500; text-align: center; }
+.msg__key:disabled { opacity: .55; }
+.msg__key--chosen { opacity: 1 !important; outline: 2px solid var(--accent); outline-offset: -2px; }
+.msg__key--wide { grid-column: 1 / -1; }
+
+.reply-kb { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+.reply-kb__key { flex: 1 1 auto; min-height: 40px; max-width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+.reply-kb__key--accent { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+/* Reply-клавиатура запроса номера: кнопки во всю ширину, как в Telegram */
+.reply-kb--stack { flex-direction: column; gap: 4px; }
+.reply-kb--stack .reply-kb__key { width: 100%; min-height: 44px; font-size: 14px; }
+
+.phone-form { display: flex; gap: 6px; width: 100%; }
+.phone-form__input { flex: 1; min-width: 0; min-height: 44px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--surface); font-size: 15px; }
+.phone-form__send { border: 0; border-radius: 8px; padding: 0 14px; min-height: 44px; background: var(--accent); color: var(--surface); font-weight: 500; }
+
+/* Lawyer card inside chat */
+.card-msg { max-width: 92%; white-space: normal; }
+.card-msg__head { font-weight: 600; margin-bottom: 4px; }
+.card-msg__row { margin: 3px 0; }
+.card-msg__row b { font-weight: 600; }
+.card-msg__decision { margin-top: 6px; font-size: 13px; color: var(--muted); font-style: italic; }
+.card-msg__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; }
+.urgency { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.urgency--critical { background: var(--critical); }
+.urgency--high { background: var(--high); }
+.urgency--medium { background: var(--medium); }
+.urgency--low { background: var(--low); }
+
+/* Lawyer writes to the client through the bot */
+.composer { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.composer__chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.composer__chip {
+  max-width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px;
+  padding: 5px 10px; min-height: 32px; font-size: 12px; text-align: left;
+  white-space: nowrap; text-overflow: ellipsis;
+}
+.composer__form { display: flex; gap: 6px; }
+.composer__input { flex: 1; min-width: 0; min-height: 40px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--surface); font-size: 14px; }
+.composer__send { border: 0; border-radius: 8px; padding: 0 14px; min-height: 40px; background: var(--accent); color: var(--surface); font-size: 14px; font-weight: 500; }
+.composer__return { align-self: flex-start; border: 1px solid var(--lawyer); background: none; color: var(--lawyer); border-radius: 8px; padding: 6px 12px; min-height: 36px; font-size: 13px; }
+
+/* Date and time picker for «Запропонувати час» */
+.picker { white-space: normal; }
+.picker__title { font-weight: 600; margin: 0 0 6px; }
+.picker__month { color: var(--muted); font-size: 12px; margin: 0 0 6px; }
+.picker__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.picker__weekday { text-align: center; font-size: 11px; color: var(--muted); padding-bottom: 2px; }
+.picker__weekday--weekend { opacity: .6; }
+.picker__day, .picker__slot {
+  min-height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+  font-size: 14px; padding: 0; font-variant-numeric: tabular-nums;
+}
+@media (max-width: 420px) {
+  .msg--wide { padding-left: 8px; padding-right: 8px; }
+  .picker__week { column-gap: 2px; }
+}
+.picker__day--weekend { background: var(--surface-2); color: var(--muted); }
+.picker__day--today { border-color: var(--accent); font-weight: 600; }
+.picker__day:disabled, .picker__slot:disabled { opacity: .35; }
+.picker__day--selected, .picker__slot--selected { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.picker__slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 4px; }
+.picker__slot--busy { text-decoration: line-through; background: var(--surface-2); }
+.picker__legend { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+.picker__text { width: 100%; min-height: 96px; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--surface); font-size: 14px; line-height: 1.4; }
+.picker__actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.picker__send { border: 0; border-radius: 8px; padding: 0 14px; min-height: 40px; background: var(--accent); color: var(--surface); font-weight: 500; }
+.picker__back { border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; min-height: 40px; background: none; font-size: 13px; }
+
+@keyframes msg-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) {
+  .msg { animation: none; }
+  .scenarios__auto--on .scenarios__auto-dot { animation: none; }
+}
+
+/* Panel */
+.panel__title { font-family: var(--font-head); font-size: 26px; font-weight: 600; margin: 0 0 4px; }
+.panel__sub { color: var(--muted); margin: 0 0 20px; overflow-wrap: anywhere; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+@media (max-width: 720px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stats__item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.stats__value { font-family: var(--font-head); font-size: 30px; font-weight: 600; line-height: 1.1; }
+.stats__label { color: var(--muted); font-size: 13px; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.filters__btn { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 5px 12px; font-size: 13px; }
+.filters__btn--active { background: var(--text); color: var(--surface); border-color: var(--text); }
+
+.cases { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.cases__head { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 500; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.cases__row { cursor: pointer; }
+@media (any-hover: hover) { .cases__row:hover { background: var(--surface-2); } }
+.cases__cell { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.cases__row:last-child .cases__cell { border-bottom: 0; }
+.cases__title { font-weight: 500; }
+.cases__client { color: var(--muted); font-size: 13px; }
+.status { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 4px; background: var(--surface-2); white-space: nowrap; }
+.status--new { background: var(--accent-soft); color: var(--accent); }
+@media (max-width: 720px) {
+  .cases, .cases__body, .cases__row, .cases__cell { display: block; }
+  .cases { background: none; border: 0; }
+  .cases__thead { display: none; }
+  .cases__row { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; padding: 10px 0; }
+  .cases__cell { border: 0; padding: 3px 14px; }
+}
+
+.case { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-top: 18px; }
+.case[hidden] { display: none; }
+.case__title { font-family: var(--font-head); font-size: 21px; margin: 0 0 4px; }
+.case__meta { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.case__grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 860px) { .case__grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .case { padding: 14px; } }
+.case__label { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 4px; }
+.case__text { margin: 0; overflow-wrap: anywhere; }
+.case__actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 0; }
+.case__action { border: 1px solid var(--accent); background: none; color: var(--accent); border-radius: 8px; padding: 0 14px; min-height: 40px; font-size: 14px; }
+.case__action:disabled { opacity: .5; }
+.case__action--lawyer { border-color: var(--lawyer); color: var(--lawyer); }
+.case__picker { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.timeline { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; padding-right: 4px; }
+.timeline__item { font-size: 14px; padding: 8px 10px; border-radius: 8px; background: var(--surface-2); overflow-wrap: anywhere; }
+.timeline__item--bot { background: var(--accent-soft); }
+.timeline__item--lawyer { background: var(--bubble-lawyer); border-left: 3px solid var(--lawyer); }
+.timeline__item--system { background: none; color: var(--muted); font-size: 12px; text-align: center; padding: 2px; }
+.timeline__who { font-size: 12px; color: var(--muted); display: block; }
+
+.footer { border-top: 1px solid var(--line); }
+.footer__inner { max-width: 1240px; margin: 0 auto; padding: 14px 16px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; }
+.footer__copy, .footer__dev { margin: 0; font-size: 12px; color: var(--muted); }
+.footer__dev-link { color: inherit; }
+</style></head>
+<body>
+<div class="wrapper">
+  <header class="header">
+    <div class="header__inner">
+      <p class="header__brand">AI Intake Assistant for Law Firms</p>
+      <p class="header__note">Interactive demo. Conversations are scripted; client data is fictional.</p>
+      <nav class="header__tabs" aria-label="Demo sections">
+        <button class="header__tab header__tab--active" data-view="bot" type="button">Telegram bot</button>
+        <button class="header__tab" data-view="panel" type="button">Attorney dashboard</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="view view--active" id="view-bot">
+      <div class="scenarios">
+        <span class="scenarios__label">Scenario:</span>
+        <button class="scenarios__btn scenarios__btn--active" data-scenario="labor" type="button">Unpaid final paycheck</button>
+        <button class="scenarios__btn" data-scenario="injury" type="button">Car accident + photo</button>
+        <button class="scenarios__btn" data-scenario="critical" type="button">Arrest right now</button>
+        <button class="scenarios__restart" id="restart" type="button" data-auto-keep>Start over</button>
+        <button class="scenarios__auto scenarios__auto--on" id="auto-toggle" type="button" aria-pressed="true" data-auto-keep>
+          <span class="scenarios__auto-dot" aria-hidden="true"></span><span id="auto-label">Autoplay ⏸</span>
+        </button>
+      </div>
+
+      <div class="stage">
+        <div class="stage__col">
+          <h2 class="stage__caption">Client's phone</h2>
+          <p class="stage__hint" id="client-hint">The conversation plays by itself. Press any button to take over.</p>
+          <div class="chat">
+            <div class="chat__top">
+              <div class="chat__avatar">H</div>
+              <div class="chat__who">
+                <p class="chat__name">Harbor Legal · assistant</p>
+                <p class="chat__status" id="client-status">bot</p>
+              </div>
+            </div>
+            <div class="chat__body" id="client-body"></div>
+            <div class="chat__bottom" id="client-bottom"><span class="chat__input">Message</span></div>
+          </div>
+        </div>
+
+        <div class="stage__col">
+          <h2 class="stage__caption">Attorney's phone</h2>
+          <p class="stage__hint">A case card arrives here once the bot has collected the details. The attorney can also message the client directly.</p>
+          <div class="chat">
+            <div class="chat__top">
+              <div class="chat__avatar">H</div>
+              <div class="chat__who">
+                <p class="chat__name">Harbor Legal · new cases</p>
+                <p class="chat__status">attorney notifications</p>
+              </div>
+            </div>
+            <div class="chat__body" id="lawyer-body"></div>
+            <div class="chat__bottom" id="lawyer-bottom"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view panel" id="view-panel">
+      <h1 class="panel__title">Overview</h1>
+      <p class="panel__sub">Emily Carter · Harbor Legal, Boston</p>
+      <div class="stats" id="stats"></div>
+      <div class="filters" id="filters"></div>
+      <table class="cases">
+        <thead class="cases__thead">
+          <tr>
+            <th class="cases__head">Case</th>
+            <th class="cases__head">Category</th>
+            <th class="cases__head">Urgency</th>
+            <th class="cases__head">Status</th>
+            <th class="cases__head">Received</th>
+          </tr>
+        </thead>
+        <tbody class="cases__body" id="cases-body"></tbody>
+      </table>
+      <article class="case" id="case" hidden></article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <p class="footer__copy">© 2026 Harbor Legal (demo) · Telegram Bot API · AI case summary · voice-to-text · serverless backend</p>
+      <p class="footer__dev">Demo by Sergey Z.</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* ==========================================================================
+   English demo «AI Intake Assistant for Law Firms» (based on ai-sekretar/).
+   Autoplay: labor → injury → critical → labor … Any visitor click on a button switches
+   to manual mode until «Start over» or the autoplay toggle.
+   Bubbles, «typing…» and autoplay come from ../../shared/chat-sim.js.
+   ========================================================================== */
+
+// Autoplay tempo, ms
+const TEMPO = {
+  userStep: 2500,
+  choice: 2500,
+  botTyping: 1100,
+  botTypingCritical: 700,
+  voice: 500,
+  card: 400,
+  next: 5000,
+};
+const ORDER = ['labor', 'injury', 'critical'];
+
+const CATEGORY = { labor: 'Employment', injury: 'Personal injury', criminal: 'Criminal', family: 'Family', debt: 'Debt', property: 'Real estate', traffic: 'Traffic', immigration: 'Immigration' };
+const URGENCY = { critical: 'critical', high: 'high', medium: 'medium', low: 'low' };
+const STATUS = { new: 'New', in_progress: 'In progress', scheduled: 'Scheduled', rejected: 'Declined', closed: 'Closed' };
+// Slots: next two business days from today
+const SLOTS = (() => {
+  const days = [];
+  const d = new Date();
+  while (days.length < 2) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) days.push(new Date(d)); }
+  const f = (x) => x.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  return [`${f(days[0])} at 10:00 AM`, `${f(days[0])} at 3:00 PM`, `${f(days[1])} at 11:00 AM`];
+})();
+const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const $ = (id) => document.getElementById(id);
+const clientBody = $('client-body');
+const clientBottom = $('client-bottom');
+const lawyerBody = $('lawyer-body');
+const lawyerBottom = $('lawyer-bottom');
+const clientStatus = $('client-status');
+const { reduceMotion, sleep, time, esc } = window.ChatSim;
+// [placeholder] in bot text — highlighted spot for the firm's own data
+const fmt = (s) => esc(s).replace(/\[([^\]]+)\]/g, '<span class="msg__placeholder">$1</span>');
+
+const P = {
+  person: 'Emily Carter', firm: 'Harbor Legal', city: 'Boston',
+  phone: '[your office number]', office: '[your office address]',
+};
+const signature = () => `Attorney ${P.person}`;
+
+const SC = {
+  labor: {
+    title: 'Unpaid final paycheck after termination',
+    steps: [
+      { from: 'user', text: 'Hi. I was let go and they still haven\'t paid my final paycheck.' },
+      { from: 'bot', text: 'Hi, I\'m sorry that happened. I\'ll help you prepare your case for the attorney. When was your last day of work?' },
+      { from: 'user', text: 'October 2' },
+      { from: 'bot', text: 'Got it. How did the employment end?', quick: ['I was fired', 'Laid off', 'I resigned', 'Not sure'] },
+      { from: 'user', text: 'I was fired' },
+      { from: 'bot', text: 'Roughly how much are you owed?' },
+      { from: 'user', voice: '0:06', text: 'About forty-eight hundred dollars. Two weeks of pay plus my unused vacation days.' },
+      { from: 'bot', text: 'Thank you. Were you on payroll as a regular employee (W-2)?', quick: ['Yes', 'No, contractor', 'Not sure'] },
+      { from: 'user', text: 'Yes, for three years' },
+      { from: 'bot', text: 'What documents do you have? You can send a photo of the termination letter or your last pay stub.' },
+      { from: 'user', photo: 'TERMINATION LETTER', text: '' },
+      { from: 'bot', text: 'I can see a termination letter dated 10/02/2026, effective immediately. What\'s your name, and which city are you in?' },
+      { from: 'user', text: 'Andrew, Boston' },
+      { from: 'bot', text: 'Andrew, please share your phone number so the attorney can reach you.', contact: true },
+      { from: 'user', contact: '+1 (•••) •••-••41' },
+      { from: 'bot', text: 'Thank you! I\'m passing your case to the attorney. Please pick a time for your consultation:', slots: true, card: true },
+    ],
+    card: {
+      id: 101, urgency: 'high', category: 'labor',
+      summary: 'Client was terminated on 10/02/2026. Final paycheck (~$4,800: two weeks of wages plus unused vacation) has not been paid. W-2 employee for 3 years.',
+      goal: 'Recover unpaid wages and statutory penalties for late payment.',
+      deadlines: 'terminated 10/02/2026; final pay was due on the last day of work — verify state rules',
+      documents: '1 provided (termination letter) · still needed: last pay stub, employment agreement',
+      client: 'Andrew, +1 (•••) •••-••41, @andrew_k, Boston',
+    },
+    chips: [`Hi Andrew, this is ${signature()}. I've reviewed your termination letter — let's discuss how to recover your pay.`, 'Please bring your last pay stub and any employment agreement to the consultation.', 'Would today at 4:00 PM work for you?'],
+    replies: ['Great, thank you! I\'ll bring the documents.', 'How long does something like this usually take?'],
+  },
+  injury: {
+    title: 'Car accident, other driver ran a red light',
+    steps: [
+      { from: 'user', text: 'I was in a car accident 3 days ago. The other driver\'s insurance keeps calling me. What should I do?' },
+      { from: 'bot', text: 'I\'m sorry to hear that — I hope you\'re okay. The attorney will advise you on the next steps; I\'ll help you prepare so the consultation is as useful as possible. Can you send a photo of the police report?' },
+      { from: 'user', photo: 'POLICE REPORT', text: '' },
+      { from: 'bot', text: 'I can see a police report dated 10/12/2026: the other driver was cited for running a red light. Were you injured?', quick: ['Yes', 'Not sure yet', 'No'] },
+      { from: 'user', text: 'Yes, neck and back pain. I went to the ER' },
+      { from: 'bot', text: 'Noted. Has the other driver\'s insurer asked you for a recorded statement?', quick: ['Yes, scheduled', 'They asked', 'No'] },
+      { from: 'user', text: 'Yes, scheduled' },
+      { from: 'bot', text: 'Thank you. I\'m marking this as urgent. What\'s your name, and which city are you in?' },
+      { from: 'user', text: 'Victor, Cambridge' },
+      { from: 'bot', text: 'Victor, please share your phone number so the attorney can reach you.', contact: true },
+      { from: 'user', contact: '+1 (•••) •••-••07' },
+      { from: 'bot', text: 'Thank you! I\'m passing your case to the attorney. Since the insurer call is coming up, I recommend the earliest slot:', slots: true, card: true },
+    ],
+    card: {
+      id: 102, urgency: 'high', category: 'injury',
+      summary: 'Rear-end/intersection collision on 10/12/2026; other driver cited for running a red light. Client has neck and back pain, visited the ER. The other driver\'s insurer has scheduled a recorded statement.',
+      goal: 'Protect the claim and recover medical costs and damages.',
+      deadlines: 'insurer recorded statement — upcoming; statute of limitations — verify',
+      documents: '1 provided (police report) · still needed: ER records, photos of the vehicles, insurance details',
+      client: 'Victor, +1 (•••) •••-••07, @victor_s, Cambridge',
+    },
+    chips: [`Hi Victor, this is ${signature()}. I've reviewed the police report — please don't give a recorded statement before we talk.`, 'Please bring your ER records and photos of both cars to the consultation.', 'Keep all medical bills and receipts — we\'ll need them.'],
+    replies: ['Okay, I\'ll postpone the call. Thank you!', 'Should I also bring my own insurance policy?'],
+  },
+  critical: {
+    title: 'Family member arrested',
+    steps: [
+      { from: 'user', text: 'My brother was just arrested by the police!! What do I do?' },
+      { from: 'bot', critical: true, text: `I understand, this is very stressful. The attorney has already been notified. Call right now: ${P.phone}.\n\nUntil the attorney arrives, your brother should not sign anything or answer questions without a lawyer.\n\nPlease share your number so the attorney can call you back immediately.`, contact: true, card: true },
+      { from: 'user', contact: '+1 (•••) •••-••93' },
+      { from: 'bot', text: 'Thank you, I\'ve passed your number to the attorney. If you know where your brother is being held, tell me and I\'ll forward it right away.' },
+      { from: 'user', text: 'District police station near the train station' },
+      { from: 'bot', text: 'Forwarded. The attorney will contact you shortly.' },
+    ],
+    card: {
+      id: 103, urgency: 'critical', category: 'criminal',
+      summary: 'The client\'s brother was just arrested by the police. Details unknown.',
+      goal: 'Immediate representation for the detained person.',
+      deadlines: 'arrest happening now',
+      documents: 'none provided',
+      client: 'Irene, +1 (•••) •••-••93, @irene_p, city not given',
+    },
+    chips: [`Hi Irene, this is ${signature()}. I'm heading to the station now.`, 'Tell your brother: don\'t sign anything or answer questions without a lawyer.', 'Please send me your brother\'s full name and date of birth.'],
+    replies: ['Thank you! Sending it now.', 'I told my brother, thank you.'],
+  },
+};
+
+/* --- Autoplay (shared/chat-sim.js) -------------------------------------- */
+
+let runId = 0;
+let current = 'labor';
+
+const sim = window.ChatSim.create({
+  root: document,
+  manual: 'button, .cases__row',
+  getRun: () => runId,
+  tempo: TEMPO,
+  onAuto(on) {
+    const btn = $('auto-toggle');
+    btn.classList.toggle('scenarios__auto--on', on);
+    btn.setAttribute('aria-pressed', String(on));
+    $('auto-label').textContent = on ? 'Autoplay ⏸' : 'Autoplay ▶';
+    $('client-hint').textContent = on
+      ? 'The conversation plays by itself. Press any button to take over.'
+      : 'Press the buttons to answer as the client.';
+  },
+});
+const setAuto = (on) => sim.setAuto(on);
+const autoPress = (target, ms) => sim.press(target, ms);
+const autoPause = (ms) => sim.pause(ms);
+const waitFor = (cond, run) => sim.waitFor(cond, run);
+
+/* --- Scenario state ------------------------------------------------------- */
+
+let S = null;
+let LOG = [];
+
+function freshState() {
+  return {
+    handoff: false, composerOpen: false, draft: '', replyIdx: 0, lawyerSpoke: false,
+    taken: false, rejected: false, slotsDecided: false, picker: null, proposal: null, caseRow: null,
+  };
+}
+
+const scrollDown = (body) => sim.scrollDown(body);
+const addMsg = (body, cls, html) => sim.addMsg(body, cls, html);
+
+function log(who, text) { LOG.push({ who, text }); }
+
+function botSay(text, extra = '') {
+  addMsg(clientBody, 'msg--in', `${fmt(text)}${extra}<span class="msg__time">${time()}</span>`);
+  log('bot', text);
+}
+
+function systemLine(text) {
+  addMsg(clientBody, 'msg--system', esc(text));
+  log('system', text);
+}
+
+function userBubble(step) {
+  const t = `<span class="msg__time">${time()}</span>`;
+  if (step.voice) {
+    addMsg(clientBody, 'msg--out', `<div class="msg__voice"><span class="msg__play"></span><span class="msg__wave"></span><span>${step.voice}</span></div>${t}`);
+    log('client', '[voice message] ' + step.text);
+  } else if (step.photo) {
+    addMsg(clientBody, 'msg--out', `<div class="msg__photo"><div class="msg__photo-title">${esc(step.photo)}</div><div class="msg__photo-line"></div><div class="msg__photo-line"></div><div class="msg__photo-line msg__photo-line--short"></div><div class="msg__photo-line"></div><div class="msg__photo-line msg__photo-line--short"></div></div>${t}`);
+    log('client', '[document photo: ' + step.photo + ']');
+  } else if (step.contact) {
+    addMsg(clientBody, 'msg--out', `<div class="msg__contact">Contact: ${esc(step.contact)}</div>${t}`);
+    log('client', '[contact: ' + step.contact + ']');
+  } else {
+    addMsg(clientBody, 'msg--out', `${esc(step.text)}${t}`);
+    log('client', step.text);
+  }
+}
+
+/* --- Client keyboard ------------------------------------------------------ */
+
+let clientPrompt = null;
+
+function renderClientBottom() {
+  clientBottom.innerHTML = '';
+  const sc = SC[current];
+  if (S.handoff && S.replyIdx < sc.replies.length) {
+    const kb = document.createElement('div');
+    kb.className = 'reply-kb';
+    kb.innerHTML = `<button class="reply-kb__key reply-kb__key--accent" type="button" data-reply>Reply: “${esc(sc.replies[S.replyIdx])}”</button>`;
+    clientBottom.appendChild(kb);
+    return;
+  }
+  if (!S.handoff && clientPrompt) { clientPrompt(); return; }
+  clientBottom.innerHTML = '<span class="chat__input">Message</span>';
+}
+
+function waitForUser(step, prevBot) {
+  return new Promise((resolve) => {
+    clientPrompt = () => {
+      const kb = document.createElement('div');
+      kb.className = 'reply-kb';
+      const add = (label, main) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'reply-kb__key' + (main ? ' reply-kb__key--accent' : '');
+        if (main) b.dataset.step = '';
+        b.textContent = label;
+        b.addEventListener('click', () => {
+          clientPrompt = null;
+          clientBottom.innerHTML = '<span class="chat__input">Message</span>';
+          resolve();
+        });
+        kb.appendChild(b);
+      };
+      if (step.contact) {
+        kb.classList.add('reply-kb--stack');
+        add('📱 Share my phone number', true);
+        const other = document.createElement('button');
+        other.type = 'button';
+        other.className = 'reply-kb__key';
+        other.textContent = '✏️ Different number';
+        other.addEventListener('click', () => askOtherPhone(resolve));
+        kb.appendChild(other);
+      } else if (step.photo) add('Send document photo', true);
+      else if (step.voice) add('Send voice message', true);
+      else if (prevBot && prevBot.quick && prevBot.quick.includes(step.text)) prevBot.quick.forEach((q) => add(q, q === step.text));
+      else add('Send: “' + (step.text.length > 40 ? step.text.slice(0, 40) + '…' : step.text) + '”', true);
+      clientBottom.appendChild(kb);
+    };
+    renderClientBottom();
+    autoPress(() => clientBottom.querySelector('[data-step]'), TEMPO.userStep);
+  });
+}
+
+// «✏️ Different number»: the visitor types a number; US format
+let phoneDraft = '';
+async function askOtherPhone(resolve) {
+  const run = runId;
+  clientPrompt = null;
+  addMsg(clientBody, 'msg--out', `✏️ Different number<span class="msg__time">${time()}</span>`);
+  log('client', 'Different number');
+  clientBottom.innerHTML = '<span class="chat__input">Message</span>';
+  await botTyping(TEMPO.botTyping);
+  if (run !== runId) return;
+  botSay('Please type the number where it\'s best to reach you.');
+  phoneDraft = '';
+  clientPrompt = () => {
+    const form = document.createElement('form');
+    form.className = 'phone-form';
+    form.innerHTML = '<input class="phone-form__input" type="tel" inputmode="tel" autocomplete="off" placeholder="+1 (555) 123-4567" aria-label="Phone number"><button class="phone-form__send" type="submit">Send</button>';
+    const input = form.querySelector('.phone-form__input');
+    input.value = phoneDraft;
+    input.addEventListener('input', () => { phoneDraft = input.value; });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const raw = input.value.trim();
+      if (!raw) return;
+      const digits = raw.replace(/[\s().-]/g, '');
+      addMsg(clientBody, 'msg--out', `${esc(raw)}<span class="msg__time">${time()}</span>`);
+      log('client', raw);
+      phoneDraft = '';
+      if (/^(\+?1)?\d{10}$/.test(digits)) {
+        clientPrompt = null;
+        clientBottom.innerHTML = '<span class="chat__input">Message</span>';
+        resolve('typed');
+        return;
+      }
+      input.value = '';
+      await botTyping(TEMPO.botTyping);
+      if (run !== runId) return;
+      botSay('That number doesn\'t look right. Please use the format +1 (555) 123-4567.');
+    });
+    clientBottom.appendChild(form);
+  };
+  renderClientBottom();
+}
+
+const botTyping = (ms) => sim.typing(clientBody, ms, clientStatus, 'bot');
+
+/* --- Case card for the attorney -------------------------------------------- */
+
+function sendCard(sc) {
+  const c = sc.card;
+  addMsg(lawyerBody, 'msg--in card-msg', `
+    <div class="card-msg__head"><span class="urgency urgency--${c.urgency}"></span>${CATEGORY[c.category]} · Urgency: ${URGENCY[c.urgency]}</div>
+    <div class="card-msg__row"><b>Summary:</b> ${esc(c.summary)}</div>
+    <div class="card-msg__row"><b>Client's goal:</b> ${esc(c.goal)}</div>
+    <div class="card-msg__row"><b>Key deadlines:</b> ${esc(c.deadlines)}</div>
+    <div class="card-msg__row"><b>Documents:</b> ${esc(c.documents)}</div>
+    <div class="card-msg__row"><b>Client:</b> ${esc(c.client)}</div>
+    <div class="card-msg__decision" hidden></div>
+    <div class="card-msg__actions">
+      <button class="msg__key" data-act="take" type="button">Accept case</button>
+      <button class="msg__key" data-act="time" type="button">Propose a time</button>
+      <button class="msg__key" data-act="reject" type="button">Decline</button>
+      <button class="msg__key" data-act="panel" type="button">Open in dashboard</button>
+      <button class="msg__key msg__key--wide" data-act="write" type="button">Message the client</button>
+    </div>
+    <span class="msg__time">${time()}</span>`);
+}
+
+function cardNote(text) {
+  const d = lawyerBody.querySelector('.card-msg__decision');
+  if (!d) return;
+  d.hidden = false;
+  d.textContent = `${text} · ${P.person}, ${time()}`;
+}
+
+function cardButtons() {
+  const q = (a) => lawyerBody.querySelector(`.card-msg [data-act="${a}"]`);
+  const set = (a, off) => { const b = q(a); if (b) b.disabled = off; };
+  set('take', S.taken || S.rejected);
+  set('reject', S.taken || S.rejected);
+  set('time', S.rejected || !!S.proposal || !!S.picker);
+  set('write', S.rejected);
+  ['take', 'reject'].forEach((a) => { const b = q(a); if (b) b.classList.toggle('msg__key--chosen', a === 'take' ? S.taken : S.rejected); });
+  const t = q('time'); if (t) t.classList.toggle('msg__key--chosen', !!S.proposal);
+}
+
+function decide(act) {
+  const row = S.caseRow;
+  if (act === 'take' && !S.taken && !S.rejected) {
+    S.taken = true;
+    cardNote('Case accepted');
+    if (row && row.status === 'new') row.status = 'in_progress';
+    botSay(`Attorney ${P.person} has accepted your case and will contact you shortly.`);
+  }
+  if (act === 'reject' && !S.taken && !S.rejected) {
+    S.rejected = true;
+    S.picker = null;
+    cardNote('Declined');
+    if (row) row.status = 'rejected';
+    botSay('Unfortunately, the attorney can\'t take this case. We recommend contacting your local legal aid office or the state bar referral service.');
+  }
+  if (act === 'time' && !S.picker && !S.proposal && !S.rejected) {
+    S.picker = { step: 'date', date: null, time: '', text: '' };
+  }
+  if (act === 'write' && !S.rejected) S.composerOpen = true;
+  renderLive();
+}
+
+/* --- Attorney takes over the conversation -------------------------------------- */
+
+function lawyerSend(text) {
+  text = text.trim();
+  if (!text) return;
+  if (!S.handoff) {
+    S.handoff = true;
+    systemLine('The attorney is now replying; the bot is paused');
+    addMsg(lawyerBody, 'msg--system', 'You are in the conversation. Bot paused');
+  }
+  addMsg(clientBody, 'msg--in msg--lawyer', `<span class="msg__sign">${esc(signature())}</span>${esc(text)}<span class="msg__time">${time()}</span>`);
+  addMsg(lawyerBody, 'msg--out', `<span class="msg__meta">To client, via the bot</span>${esc(text)}<span class="msg__time">${time()}</span>`);
+  log('lawyer', text);
+  S.draft = '';
+  S.lawyerSpoke = true;
+  renderLive();
+}
+
+function clientReply() {
+  const sc = SC[current];
+  const text = sc.replies[S.replyIdx];
+  if (!text) return;
+  S.replyIdx++;
+  addMsg(clientBody, 'msg--out', `${esc(text)}<span class="msg__time">${time()}</span>`);
+  addMsg(lawyerBody, 'msg--in', `<span class="msg__meta">Client writes</span>${esc(text)}<span class="msg__time">${time()}</span>`);
+  log('client', text);
+  renderLive();
+}
+
+function returnToBot() {
+  if (!S.handoff) return;
+  S.handoff = false;
+  S.composerOpen = false;
+  systemLine('Conversation handed back to the bot');
+  addMsg(lawyerBody, 'msg--system', 'Conversation handed back to the bot');
+  renderLive();
+}
+
+function composerHTML(withReturn) {
+  const chips = SC[current].chips.map((c, i) => `<button class="composer__chip" type="button" data-chip="${i}" title="${esc(c)}">${esc(c)}</button>`).join('');
+  return `<div class="composer">
+    <div class="composer__chips">${chips}</div>
+    <form class="composer__form">
+      <input class="composer__input" type="text" value="${esc(S.draft)}" placeholder="Message the client…" aria-label="Message to the client from the bot">
+      <button class="composer__send" type="submit">Send</button>
+    </form>
+    ${withReturn && S.handoff ? '<button class="composer__return" type="button">Hand back to bot</button>' : ''}
+  </div>`;
+}
+
+/* --- «Propose a time»: date, time, message --------------------------------- */
+
+const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const dateLabel = (d) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+const TIMES = Array.from({ length: 18 }, (_, i) => `${String(9 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`);
+const ampm = (t) => { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
+
+function pickerDays() {
+  const t = today0();
+  const dow = (t.getDay() + 6) % 7;
+  const start = new Date(t);
+  start.setDate(t.getDate() - dow);
+  const weeks = dow >= 3 ? 4 : 3;
+  return Array.from({ length: weeks * 7 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
+}
+
+function slotBusy(d, i) { return (d.getDate() * 7 + i * 5) % 6 === 0 || i === 6; }
+function slotPast(d, t) {
+  const now = new Date();
+  if (dayKey(d) !== dayKey(now)) return false;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m <= now.getHours() * 60 + now.getMinutes() + 30;
+}
+
+function proposalText(d, t) {
+  const when = `${dateLabel(d)} at ${ampm(t)}`;
+  if (S.handoff) return `Hello! I can meet with you on ${when}. Does that work for you, or should we find another time?`;
+  return `Hello! Attorney ${P.person} can meet with you on ${when}. Does that work for you, or should we find another time?`;
+}
+
+function pickerHTML() {
+  const pk = S.picker;
+  if (pk.step === 'date') {
+    const days = pickerDays();
+    const t = today0();
+    const months = [...new Set(days.map((d) => d.toLocaleDateString('en-US', { month: 'long' })))].join(' – ');
+    const head = WEEKDAYS.map((w, i) => `<span class="picker__weekday${i >= 5 ? ' picker__weekday--weekend' : ''}">${w}</span>`).join('');
+    const cells = days.map((d) => {
+      const wk = (d.getDay() + 6) % 7 >= 5;
+      const cls = 'picker__day' + (wk ? ' picker__day--weekend' : '') + (dayKey(d) === dayKey(t) ? ' picker__day--today' : '');
+      return `<button class="${cls}" type="button" data-date="${dayKey(d)}" aria-label="${esc(dateLabel(d))}"${d < t ? ' disabled' : ''}>${d.getDate()}</button>`;
+    }).join('');
+    return `<div class="picker"><p class="picker__title">Choose a consultation date</p><p class="picker__month">${esc(months)}</p>
+      <div class="picker__week">${head}${cells}</div>
+      <div class="picker__actions"><button class="picker__back" type="button" data-picker="cancel">Cancel</button></div></div>`;
+  }
+  if (pk.step === 'time') {
+    const slots = TIMES.map((t, i) => {
+      const busy = slotBusy(pk.date, i);
+      const past = slotPast(pk.date, t);
+      return `<button class="picker__slot${busy ? ' picker__slot--busy' : ''}" type="button" data-time="${t}"${busy || past ? ' disabled' : ''}${busy ? ' aria-label="' + ampm(t) + ', busy"' : ''}>${ampm(t).replace(' ', ' ')}</button>`;
+    }).join('');
+    return `<div class="picker"><p class="picker__title">Time · ${esc(dateLabel(pk.date))}</p>
+      <div class="picker__slots">${slots}</div>
+      <p class="picker__legend">Crossed out — busy in your calendar</p>
+      <div class="picker__actions"><button class="picker__back" type="button" data-picker="date">← Other date</button></div></div>`;
+  }
+  return `<div class="picker"><p class="picker__title">Message to the client</p>
+    <textarea class="picker__text" aria-label="Proposed time message">${esc(pk.text)}</textarea>
+    <div class="picker__actions">
+      <button class="picker__send" type="button">Send to client</button>
+      <button class="picker__back" type="button" data-picker="time">← Change time</button>
+    </div></div>`;
+}
+
+function pickDate(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  S.picker = { step: 'time', date: new Date(y, m - 1, d), time: '', text: '' };
+  renderLive();
+}
+
+function pickTime(t) {
+  S.picker.time = t;
+  S.picker.step = 'preview';
+  S.picker.text = proposalText(S.picker.date, t);
+  renderLive();
+}
+
+function sendProposal() {
+  const pk = S.picker;
+  const text = pk.text.trim() || proposalText(pk.date, pk.time);
+  const label = `${dateLabel(pk.date)} at ${ampm(pk.time)}`;
+  S.proposal = { label, short: `${pk.date.getMonth() + 1}/${pk.date.getDate()} ${ampm(pk.time)}`, answered: false };
+  S.picker = null;
+  const keys = '<div class="msg__keyboard msg__keyboard--two"><button class="msg__key" type="button" data-answer="yes">Yes, that works</button><button class="msg__key" type="button" data-answer="no">Another time</button></div>';
+  if (S.handoff) {
+    addMsg(clientBody, 'msg--in msg--lawyer', `<span class="msg__sign">${esc(signature())}</span>${esc(text)}${keys}<span class="msg__time">${time()}</span>`);
+    log('lawyer', text);
+  } else {
+    botSay(text, keys);
+  }
+  addMsg(lawyerBody, 'msg--out', `<span class="msg__meta">Proposed to the client</span>${esc(label)}<span class="msg__time">${time()}</span>`);
+  cardNote('Time proposed: ' + label);
+  renderLive();
+}
+
+function answerProposal(yes, btn) {
+  const pr = S.proposal;
+  if (!pr || pr.answered) return;
+  pr.answered = true;
+  btn.closest('.msg__keyboard').querySelectorAll('.msg__key').forEach((b) => { b.disabled = true; });
+  btn.classList.add('msg__key--chosen');
+  addMsg(clientBody, 'msg--out', `${yes ? 'Yes, that works' : 'Another time'}<span class="msg__time">${time()}</span>`);
+  log('client', yes ? 'Yes, that works' : 'Another time');
+  if (yes) {
+    botSay(`You're booked for a consultation: ${pr.label}.\nAddress: ${P.office}, ${P.city}. I'll send you a reminder the day before.`);
+    addMsg(lawyerBody, 'msg--in', `<span class="urgency urgency--low"></span>Client confirmed: ${esc(pr.label)}\nCase #${SC[current].card.id}<span class="msg__time">${time()}</span>`);
+    if (S.caseRow) { S.caseRow.status = 'scheduled'; S.caseRow.appt = pr.short; }
+  } else {
+    botSay('I\'ve let the attorney know you need another time. She\'ll suggest other options.');
+    addMsg(lawyerBody, 'msg--in', `${esc(pr.label)} doesn't work for the client — they're asking for another time.<span class="msg__time">${time()}</span>`);
+    S.proposal = null;
+  }
+  renderLive();
+}
+
+function chooseSlot(btn) {
+  const box = btn.closest('.msg__keyboard');
+  if (S.slotsDecided) return;
+  S.slotsDecided = true;
+  box.querySelectorAll('.msg__key').forEach((b) => { b.disabled = true; });
+  btn.classList.add('msg__key--chosen');
+  const sc = SC[current];
+  if (btn.dataset.slot === 'other') {
+    addMsg(clientBody, 'msg--out', `Another time<span class="msg__time">${time()}</span>`);
+    log('client', 'Another time');
+    botSay('I\'ve let the attorney know you need another time. She\'ll suggest other options.');
+    addMsg(lawyerBody, 'msg--in', `Client from case #${sc.card.id} is asking for another consultation time.<span class="msg__time">${time()}</span>`);
+    renderLive();
+    return;
+  }
+  const slot = SLOTS[Number(btn.dataset.slot)];
+  addMsg(clientBody, 'msg--out', `${esc(slot)}<span class="msg__time">${time()}</span>`);
+  log('client', slot);
+  botSay(`You're booked for a consultation: ${slot}.\nAddress: ${P.office}, ${P.city}. I'll send you a reminder the day before.`);
+  addMsg(lawyerBody, 'msg--in', `<span class="urgency urgency--low"></span>New booking: ${esc(slot)}\nCase #${sc.card.id}, ${esc(sc.card.client.split(',')[0])}<span class="msg__time">${time()}</span>`);
+  if (S.caseRow) { S.caseRow.status = 'scheduled'; S.caseRow.appt = slot.replace(/^\w+, /, '').replace(' at ', ', '); }
+  renderLive();
+}
+
+/* --- Live re-render ---------------------------------------------------------- */
+
+let pickerBubble = null;
+
+function renderLive() {
+  lawyerBottom.innerHTML = S.composerOpen || S.handoff ? composerHTML(true) : `<span class="chat__input">${esc(P.person)}</span>`;
+  if (S.picker) {
+    if (!pickerBubble || !pickerBubble.isConnected) pickerBubble = addMsg(lawyerBody, 'msg--in msg--wide', '');
+    pickerBubble.innerHTML = pickerHTML();
+    scrollDown(lawyerBody);
+  } else if (pickerBubble) {
+    pickerBubble.remove();
+    pickerBubble = null;
+  }
+  cardButtons();
+  renderClientBottom();
+  scrollDown(clientBody);
+  scrollDown(lawyerBody);
+  renderPanel();
+  renderLiveCase();
+}
+
+/* --- Attorney dashboard ------------------------------------------------------ */
+
+const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); };
+let CASES = [
+  { id: 41, title: 'Divorce, division of the family home', client: 'Natalie', category: 'family', urgency: 'medium', status: 'in_progress', date: daysAgo(1) },
+  { id: 40, title: 'Car accident, at-fault driver uninsured', client: 'Oliver', category: 'injury', urgency: 'medium', status: 'scheduled', date: daysAgo(1) },
+  { id: 39, title: 'Collection agency calls, $3,000 debt', client: 'Sarah', category: 'debt', urgency: 'low', status: 'new', date: daysAgo(2) },
+  { id: 38, title: 'Probate, father\'s estate, two heirs', client: 'Michael', category: 'property', urgency: 'medium', status: 'in_progress', date: daysAgo(3) },
+  { id: 37, title: 'Speeding ticket, license at risk', client: 'Ryan', category: 'traffic', urgency: 'high', status: 'scheduled', date: daysAgo(4) },
+  { id: 36, title: 'Child support modification', client: 'Julia', category: 'family', urgency: 'low', status: 'closed', date: daysAgo(6) },
+  { id: 35, title: 'Two months of unpaid wages', client: 'Peter', category: 'labor', urgency: 'medium', status: 'rejected', date: daysAgo(7) },
+];
+let filter = 'all';
+let openCaseId = null;
+
+const statusText = (x) => STATUS[x.status] + (x.status === 'scheduled' && x.appt ? ' · ' + x.appt : '');
+
+function renderPanel() {
+  const count = (s) => CASES.filter((x) => x.status === s).length;
+  $('stats').innerHTML = [
+    [count('new'), 'New'], [count('in_progress'), 'In progress'], [count('scheduled'), 'Scheduled'], [CASES.length, 'This week'],
+  ].map(([v, l]) => `<div class="stats__item"><div class="stats__value">${v}</div><div class="stats__label">${l}</div></div>`).join('');
+
+  $('filters').innerHTML = [['all', 'All'], ...Object.entries(STATUS)]
+    .map(([k, l]) => `<button class="filters__btn${filter === k ? ' filters__btn--active' : ''}" data-filter="${k}" type="button">${l}</button>`).join('');
+
+  $('cases-body').innerHTML = CASES.filter((x) => filter === 'all' || x.status === filter).map((x) => `
+    <tr class="cases__row" data-id="${x.id}">
+      <td class="cases__cell"><div class="cases__title">${esc(x.title)}</div><div class="cases__client">#${x.id} · ${esc(x.client)}</div></td>
+      <td class="cases__cell">${CATEGORY[x.category]}</td>
+      <td class="cases__cell"><span class="urgency urgency--${x.urgency}"></span>${URGENCY[x.urgency]}</td>
+      <td class="cases__cell"><span class="status${x.status === 'new' ? ' status--new' : ''}">${esc(statusText(x))}</span></td>
+      <td class="cases__cell">${x.date}</td>
+    </tr>`).join('');
+}
+
+function timelineHTML(items) {
+  const who = { bot: 'Bot', client: 'Client', lawyer: signature(), system: '' };
+  return items.map((s) => `<div class="timeline__item timeline__item--${s.who}">${who[s.who] ? `<span class="timeline__who">${esc(who[s.who])}</span>` : ''}${esc(s.text)}</div>`).join('');
+}
+
+function renderCase(id) {
+  const x = CASES.find((c) => c.id === id);
+  const box = $('case');
+  openCaseId = x ? id : null;
+  if (!x) { box.hidden = true; return; }
+  const c = x.card || { summary: 'Demo record without a full case card.', goal: '—', deadlines: '—', documents: '—', client: x.client };
+  box.innerHTML = `
+    <h2 class="case__title">${esc(x.title)}</h2>
+    <p class="case__meta" data-mount="meta"></p>
+    <div class="case__grid">
+      <div>
+        <p class="case__label">Summary</p><p class="case__text">${esc(c.summary)}</p>
+        <p class="case__label">Client's goal</p><p class="case__text">${esc(c.goal)}</p>
+        <p class="case__label">Key deadlines</p><p class="case__text">${esc(c.deadlines)}</p>
+        <p class="case__label">Documents</p><p class="case__text">${esc(c.documents)}</p>
+        <p class="case__label">Client</p><p class="case__text">${esc(c.client)}</p>
+        <div data-mount="tools"></div>
+      </div>
+      <div>
+        <p class="case__label">Conversation</p>
+        <div class="timeline" data-mount="timeline">${x.live ? '' : '<p class="case__text">The conversation is saved here when a case comes in from the bot.</p>'}</div>
+        <div data-mount="reply"></div>
+      </div>
+    </div>`;
+  box.hidden = false;
+  renderLiveCase();
+  box.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+}
+
+function renderLiveCase() {
+  const box = $('case');
+  if (box.hidden || openCaseId === null) return;
+  const x = CASES.find((c) => c.id === openCaseId);
+  if (!x) return;
+  const mount = (n) => box.querySelector(`[data-mount="${n}"]`);
+  mount('meta').textContent = `#${x.id} · ${CATEGORY[x.category]} · urgency ${URGENCY[x.urgency]} · ${statusText(x)}`;
+  if (!x.live || x !== S.caseRow) return;
+  const tl = mount('timeline');
+  tl.innerHTML = timelineHTML(LOG);
+  tl.scrollTop = tl.scrollHeight;
+  mount('tools').innerHTML = `
+    <div class="case__actions">
+      <button class="case__action" type="button" data-act="time"${S.rejected || S.proposal || S.picker ? ' disabled' : ''}>Propose a time</button>
+      ${S.handoff ? '<button class="case__action case__action--lawyer composer__return" type="button">Hand back to bot</button>' : ''}
+    </div>
+    ${S.picker ? `<div class="case__picker">${pickerHTML()}</div>` : ''}`;
+  const reply = mount('reply');
+  const focused = reply.contains(document.activeElement);
+  if (!focused) reply.innerHTML = `<p class="case__label">Reply to the client via the bot</p>${composerHTML(false)}`;
+}
+
+function showView(name) {
+  document.querySelectorAll('.header__tab').forEach((t) => t.classList.toggle('header__tab--active', t.dataset.view === name));
+  document.querySelectorAll('.view').forEach((v) => v.classList.toggle('view--active', v.id === 'view-' + name));
+}
+
+function openPanel(id) { showView('panel'); renderCase(id); }
+
+/* --- Scenario ------------------------------------------------------------- */
+
+function markScenario(name) {
+  document.querySelectorAll('.scenarios__btn').forEach((x) => x.classList.toggle('scenarios__btn--active', x.dataset.scenario === name));
+}
+
+const cardBtn = (act) => () => lawyerBody.querySelector(`.card-msg [data-act="${act}"]:not(:disabled)`);
+const inLawyer = (sel) => () => lawyerBody.querySelector(sel) || lawyerBottom.querySelector(sel);
+
+// Autoplay finale: one showcase path per scenario
+async function autoFinale(name, run) {
+  const step = async (target, cond) => { autoPress(target, TEMPO.choice); return waitFor(cond, run); };
+  const slots = (sel) => () => clientBody.querySelector(`.msg__keyboard [data-slot${sel}]:not(:disabled)`);
+  if (name === 'labor') {
+    // Slots don't fit → attorney proposes date and time → client agrees
+    if (!S.slotsDecided && !(await step(slots('="other"'), () => S.slotsDecided))) return false;
+    if (!(await step(cardBtn('time'), () => S.picker || S.proposal))) return false;
+    const t = today0();
+    const day = pickerDays().find((d) => d > t && (d.getDay() + 6) % 7 < 5);
+    if (S.picker && S.picker.step === 'date' && day) {
+      if (!(await step(inLawyer(`.picker__day[data-date="${dayKey(day)}"]`), () => !S.picker || S.picker.step !== 'date'))) return false;
+    }
+    if (S.picker && S.picker.step === 'time') {
+      const i = TIMES.findIndex((tm, k) => tm >= '15:00' && !slotBusy(S.picker.date, k));
+      if (!(await step(inLawyer(`.picker__slot[data-time="${TIMES[i < 0 ? 0 : i]}"]`), () => !S.picker || S.picker.step !== 'time'))) return false;
+    }
+    if (S.picker && !(await step(inLawyer('.picker__send'), () => S.proposal))) return false;
+    if (!(await step(() => clientBody.querySelector('[data-answer="yes"]:not(:disabled)'), () => !S.proposal || S.proposal.answered))) return false;
+  } else if (name === 'injury') {
+    // Slot → accept → attorney writes to the client → reply → hand back to bot
+    if (!S.slotsDecided && !(await step(slots('="0"'), () => S.slotsDecided))) return false;
+    if (!S.taken && !(await step(cardBtn('take'), () => S.taken || S.rejected))) return false;
+    if (!(await step(cardBtn('write'), () => S.composerOpen || S.handoff))) return false;
+    const chip = SC.injury.chips[0];
+    if (!(await step(() => lawyerBottom.querySelector('[data-chip="0"]'), () => S.draft === chip || S.lawyerSpoke))) return false;
+    if (!(await step(() => lawyerBottom.querySelector('.composer__send'), () => S.lawyerSpoke))) return false;
+    if (!(await step(() => clientBottom.querySelector('[data-reply]'), () => S.replyIdx > 0))) return false;
+    if (!(await step(() => lawyerBottom.querySelector('.composer__return'), () => !S.handoff))) return false;
+  } else if (!S.taken && !(await step(cardBtn('take'), () => S.taken || S.rejected))) {
+    return false;
+  }
+  return true;
+}
+
+async function play(name) {
+  const run = ++runId;
+  sim.reset();
+  current = name;
+  markScenario(name);
+  const sc = SC[name];
+  S = freshState();
+  LOG = [];
+  clientPrompt = null;
+  pickerBubble = null;
+  clientBody.innerHTML = '';
+  lawyerBody.innerHTML = '';
+  CASES = CASES.filter((x) => !x.live);
+  if (openCaseId !== null && !CASES.some((x) => x.id === openCaseId)) { $('case').hidden = true; openCaseId = null; }
+  addMsg(clientBody, 'msg--system', 'Client tapped /start and agreed to the privacy policy');
+  addMsg(lawyerBody, 'msg--system', 'This chat is subscribed to new cases with /lawyer');
+  renderLive();
+
+  let prevBot = null;
+  for (const step of sc.steps) {
+    if (!(await waitFor(() => !S.handoff, run))) return;
+    if (step.from === 'user') {
+      const how = await waitForUser(step, prevBot);
+      if (run !== runId) return;
+      if (how !== 'typed') userBubble(step);
+      if (step.voice) {
+        await sleep(TEMPO.voice);
+        if (run !== runId) return;
+        addMsg(clientBody, 'msg--in', `<span class="msg__meta">Voice message transcribed:</span>“${esc(step.text)}”<span class="msg__time">${time()}</span>`);
+      }
+      renderLiveCase();
+      continue;
+    }
+    await botTyping(step.critical ? TEMPO.botTypingCritical : TEMPO.botTyping);
+    if (run !== runId) return;
+    const slotKeys = step.slots
+      ? `<div class="msg__keyboard">${SLOTS.map((s, i) => `<button class="msg__key" type="button" data-slot="${i}">${s}</button>`).join('')}<button class="msg__key" type="button" data-slot="other">Another time</button></div>`
+      : '';
+    botSay(step.text, slotKeys);
+    prevBot = step;
+    if (step.card) {
+      S.caseRow = { id: sc.card.id, live: true, title: sc.title, client: sc.card.client.split(',')[0], category: sc.card.category, urgency: sc.card.urgency, status: 'new', date: 'just now', card: sc.card };
+      CASES.unshift(S.caseRow);
+      await sleep(TEMPO.card);
+      if (run !== runId) return;
+      sendCard(sc);
+    }
+    renderLive();
+  }
+
+  if (sim.auto && !(await autoFinale(name, run))) return;
+  await autoPause(TEMPO.next);
+  if (run !== runId) return;
+  play(ORDER[(ORDER.indexOf(name) + 1) % ORDER.length]);
+}
+
+/* --- Events --------------------------------------------------------------- */
+
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  const on = (sel) => t.closest(sel);
+  let b;
+  if ((b = on('.header__tab'))) return showView(b.dataset.view);
+  if ((b = on('.scenarios__btn'))) return play(b.dataset.scenario);
+  if (on('#restart')) { setAuto(true); return play(current); }
+  if (on('#auto-toggle')) return setAuto(!sim.auto);
+  if ((b = on('[data-filter]'))) { filter = b.dataset.filter; return renderPanel(); }
+  if ((b = on('.cases__row'))) return renderCase(Number(b.dataset.id));
+  if (!S) return;
+  if ((b = on('.card-msg [data-act], .case__action[data-act]'))) {
+    if (b.dataset.act === 'panel') return openPanel(SC[current].card.id);
+    return decide(b.dataset.act);
+  }
+  if ((b = on('[data-slot]'))) return chooseSlot(b);
+  if ((b = on('[data-answer]'))) return answerProposal(b.dataset.answer === 'yes', b);
+  if ((b = on('[data-reply]'))) return clientReply();
+  if ((b = on('.composer__chip'))) {
+    S.draft = SC[current].chips[Number(b.dataset.chip)];
+    S.composerOpen = true;
+    document.querySelectorAll('.composer__input').forEach((i) => { i.value = S.draft; });
+    return;
+  }
+  if (on('.composer__return')) return returnToBot();
+  if ((b = on('.picker__day'))) return pickDate(b.dataset.date);
+  if ((b = on('.picker__slot'))) return pickTime(b.dataset.time);
+  if (on('.picker__send')) return sendProposal();
+  if ((b = on('[data-picker]'))) {
+    const to = b.dataset.picker;
+    if (to === 'cancel') S.picker = null;
+    else if (to === 'date') S.picker = { step: 'date', date: null, time: '', text: '' };
+    else S.picker.step = 'time';
+    return renderLive();
+  }
+});
+
+document.addEventListener('submit', (e) => {
+  if (!e.target.closest('.composer__form') || !S) return;
+  e.preventDefault();
+  const reply = $('case').querySelector('[data-mount="reply"]');
+  lawyerSend(S.draft);
+  if (reply) reply.innerHTML = `<p class="case__label">Reply to the client via the bot</p>${composerHTML(false)}`;
+});
+
+document.addEventListener('input', (e) => {
+  if (!S) return;
+  if (e.target.matches('.composer__input')) {
+    S.draft = e.target.value;
+    document.querySelectorAll('.composer__input').forEach((i) => { if (i !== e.target) i.value = S.draft; });
+  }
+  if (e.target.matches('.picker__text') && S.picker) S.picker.text = e.target.value;
+});
+
+play('labor');
+</script>
+</body>
+</html>
