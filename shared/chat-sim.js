@@ -44,7 +44,10 @@
 
 	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 	const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-	const time = () => new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+	// Английские версии демо (<html lang="en">): «typing…» и время 9:41 PM вместо «друкує…» и 21:41
+	const EN = /^en\b/i.test(document.documentElement.lang || '');
+	const TYPING = EN ? 'typing…' : 'друкує…';
+	const time = () => new Date().toLocaleTimeString(EN ? 'en-US' : 'uk-UA', { hour: EN ? 'numeric' : '2-digit', minute: '2-digit' });
 	const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 	function create(opts) {
@@ -181,7 +184,7 @@
 		// «друкує…» в ленте body; statusEl (необязательно) на время печати показывает «друкує…»
 		async function typing(body, ms, statusEl, idleText) {
 			const before = statusEl ? statusEl.textContent : '';
-			if (statusEl) statusEl.textContent = 'друкує…';
+			if (statusEl) statusEl.textContent = TYPING;
 			const t = document.createElement('div');
 			t.className = cls.typing;
 			t.setAttribute('aria-hidden', 'true');
